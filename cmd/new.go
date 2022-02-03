@@ -16,7 +16,14 @@ import (
 
 var content = `# Introduction
 
-Here comes the content.`
+Here comes the content.
+
+## How to
+
+Just write markdown and when you want to reference the image, place the image inside the static/images and reference it in url ../images/nameoftheimage.png.
+
+![Image](../images/sample.png)
+`
 
 var output = `---
 %s---
