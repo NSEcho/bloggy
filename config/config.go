@@ -22,6 +22,7 @@ type data struct {
 	CurrentYear string
 	TwitterLink string `yaml:"twitter"`
 	GithubLink  string `yaml:"github"`
+	Mail        string `yaml:"mail"`
 	Author      string `yaml:"author"`
 	About       string `yaml:"about"`
 	Outdir      string `yaml:"outdir"`
