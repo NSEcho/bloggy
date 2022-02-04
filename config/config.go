@@ -13,11 +13,13 @@ import (
 	"time"
 
 	"github.com/gomarkdown/markdown"
+	"github.com/gorilla/feeds"
 	"github.com/lateralusd/bloggy/models"
 	"gopkg.in/yaml.v3"
 )
 
 type data struct {
+	URL         string `yaml:"url"`
 	BlogTitle   string `yaml:"title"`
 	CurrentYear string
 	TwitterLink string `yaml:"twitter"`
@@ -126,7 +128,51 @@ func (c *Config) Generate() error {
 		}
 	}
 
+	if data.URL != "" {
+		if err := c.generateRSS(&data); err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func (c *Config) generateRSS(dt *data) error {
+	feed := &feeds.Feed{
+		Title:       dt.BlogTitle,
+		Link:        &feeds.Link{Href: dt.URL},
+		Description: "custom blog",
+		Author:      &feeds.Author{Name: dt.Author, Email: dt.Mail},
+		Created:     time.Now(),
+	}
+
+	for _, post := range dt.Posts {
+		item := feeds.Item{
+			Title: post.Title,
+			Link: &feeds.Link{
+				Href: dt.URL + post.Name,
+			},
+			Description: post.Description,
+			Author:      &feeds.Author{Name: dt.Author, Email: dt.Mail},
+			Created:     post.Date,
+		}
+		feed.Items = append(feed.Items, &item)
+	}
+
+	rss, err := feed.ToRss()
+	if err != nil {
+		return err
+	}
+
+	outPath := filepath.Join(c.outDir, "index.xml")
+	f, err := os.Create(outPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = io.Copy(f, strings.NewReader(rss))
+	return err
 }
 
 func (c *Config) postToHTML(dt *data, post *models.Post, t *template.Template) error {
