@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
@@ -84,6 +85,16 @@ func (c *Config) Generate() error {
 	t, err := template.New("").Funcs(template.FuncMap{
 		"printDate": func(t time.Time) string {
 			return t.Format("2006-01-02 15:04:05")
+		},
+		"checkField": func(name string, data interface{}) bool {
+			v := reflect.ValueOf(data)
+			if v.Kind() == reflect.Ptr {
+				v = v.Elem()
+			}
+			if v.Kind() != reflect.Struct {
+				return false
+			}
+			return v.FieldByName(name).IsValid()
 		},
 	}).ParseFiles(getTplFiles()...)
 	if err != nil {
