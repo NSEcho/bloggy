@@ -1,5 +1,10 @@
 # bloggy
-Custom static site generator. To write the post, you will be using markdown.
+Custom static site generator. 
+
+It uses the combination of yaml and markdown to create the post.
+
+It is currently used by: 
+* [https://lateralusd.github.io](https://lateralusd.github.io)
 
 # Installation
 
