@@ -18,6 +18,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type outcfg struct {
+	URL         string `yaml:"url"`
+	BlogTitle   string `yaml:"title"`
+	TwitterLink string `yaml:"twitter"`
+	GithubLink  string `yaml:"github"`
+	Mail        string `yaml:"mail"`
+	Author      string `yaml:"author"`
+	About       string `yaml:"about"`
+	Outdir      string `yaml:"outdir"`
+}
+
 type data struct {
 	URL         string `yaml:"url"`
 	BlogTitle   string `yaml:"title"`
@@ -41,6 +52,26 @@ func NewConfig(cfgPath string) *Config {
 	return &Config{
 		cfgPath: cfgPath,
 	}
+}
+
+func SaveConfig(filename string) error {
+	cfg := outcfg{
+		URL:         "https://username.github.io/",
+		BlogTitle:   "sample blog",
+		TwitterLink: "https://twitter.com/user",
+		GithubLink:  "https://github.com/user",
+		Mail:        "someone@something.com",
+		Author:      "Haxor",
+		About:       "About page section",
+		Outdir:      "public",
+	}
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return yaml.NewEncoder(f).Encode(&cfg)
 }
 
 func (c *Config) Generate() error {

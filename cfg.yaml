@@ -1,9 +1,8 @@
-url: https://lateralusd.github.io
-title: lateralusd
-twitter: https://www.twitter.com/yourUsername
-github: https://www.github.com/yourUsername
-mail: xdaemonx@protonmail.ch
-author: lateralusd
+url: https://username.github.io/
+title: sample blog
+twitter: https://twitter.com/user
+github: https://github.com/user
+mail: someone@something.com
+author: Haxor
+about: About page section
 outdir: public
-about: |
-      Here comes the about section.

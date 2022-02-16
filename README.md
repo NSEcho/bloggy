@@ -16,17 +16,9 @@ $ go build
 
 # Quick setup
 
-First edit `cfg.yaml` to meet your needs.
+Generate the new config file using `bloggy cfg`, you can optionally pass the output filename, otherwise cfg.yaml will be used.
 
-```yaml
-title: lateralusd
-twitter: https://www.twitter.com/yourUsername
-github: https://www.github.com/yourUsername
-author: lateralusd
-outdir: public
-about: |
-      Here comes the about section.
-```
+Then edit the newly generated config to meet your needs.
 
 Run `$ ./bloggy new nameOfThePost` to create new post.
 

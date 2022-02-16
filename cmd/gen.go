@@ -9,7 +9,11 @@ var genCmd = &cobra.Command{
 	Use:   "gen",
 	Short: "Generate",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg := config.NewConfig("./cfg.yaml")
+		filename, err := cmd.Flags().GetString("config")
+		if err != nil {
+			return err
+		}
+		cfg := config.NewConfig(filename)
 		if err := cfg.Generate(); err != nil {
 			return err
 		}
@@ -19,4 +23,5 @@ var genCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(genCmd)
+	genCmd.Flags().StringP("config", "c", "cfg.yaml", "config filename")
 }
