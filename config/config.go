@@ -74,16 +74,16 @@ func SaveConfig(filename string) error {
 	return yaml.NewEncoder(f).Encode(&cfg)
 }
 
-func (c *Config) Generate() error {
+func (c *Config) Generate() (int, error) {
 	var data data
 	f, err := os.Open(c.cfgPath)
 	if err != nil {
-		return err
+		return -1, err
 	}
 	defer f.Close()
 
 	if err := yaml.NewDecoder(f).Decode(&data); err != nil {
-		return err
+		return -1, err
 	}
 
 	c.outDir = data.Outdir
@@ -95,14 +95,14 @@ func (c *Config) Generate() error {
 
 	files, err := ioutil.ReadDir("./posts")
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	for _, file := range files {
 		postPath := filepath.Join("./posts", file.Name())
 		post, err := postFromFile(postPath)
 		if err != nil {
-			return err
+			return -1, err
 		}
 		post.Name = getOutName(file.Name())
 		data.Posts = append(data.Posts, *post)
@@ -113,7 +113,7 @@ func (c *Config) Generate() error {
 	})
 
 	if err := copyDirs("./static", c.outDir); err != nil {
-		return err
+		return -1, err
 	}
 
 	t, err := template.New("").Funcs(template.FuncMap{
@@ -132,7 +132,7 @@ func (c *Config) Generate() error {
 		},
 	}).ParseFiles(getTplFiles()...)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	basicTpls := map[string]string{
@@ -144,28 +144,28 @@ func (c *Config) Generate() error {
 		fpath := filepath.Join(c.outDir, out)
 		f, err := os.Create(fpath)
 		if err != nil {
-			return err
+			return -1, err
 		}
 		defer f.Close()
 		if err := t.ExecuteTemplate(f, tname, &data); err != nil {
-			return err
+			return -1, err
 		}
 	}
 
 	for _, post := range data.Posts {
 		post.Author = data.Author
 		if err := c.postToHTML(&data, &post, t); err != nil {
-			return err
+			return -1, err
 		}
 	}
 
 	if data.URL != "" {
 		if err := c.generateRSS(&data); err != nil {
-			return err
+			return -1, err
 		}
 	}
 
-	return nil
+	return len(data.Posts), nil
 }
 
 func (c *Config) generateRSS(dt *data) error {

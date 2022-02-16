@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/lateralusd/bloggy/config"
 	"github.com/spf13/cobra"
 )
@@ -14,9 +16,11 @@ var genCmd = &cobra.Command{
 			return err
 		}
 		cfg := config.NewConfig(filename)
-		if err := cfg.Generate(); err != nil {
+		count, err := cfg.Generate()
+		if err != nil {
 			return err
 		}
+		fmt.Printf("Generated %d posts\n", count)
 		return nil
 	},
 }
