@@ -18,3 +18,14 @@ type Post struct {
 	ContentMD template.HTML
 	Author    string
 }
+
+type PageMetadata struct {
+	Title    string `yaml:"title"`
+	Subtitle string `yaml:"description"`
+}
+
+type Page struct {
+	PageMetadata
+	Name        string
+	PageContent template.HTML
+}

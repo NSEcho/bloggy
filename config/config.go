@@ -41,6 +41,7 @@ type data struct {
 	Outdir      string `yaml:"outdir"`
 	AboutMD     template.HTML
 	Posts       []models.Post
+	Pages       []models.Page
 }
 
 type Config struct {
@@ -93,12 +94,12 @@ func (c *Config) Generate() (int, error) {
 
 	data.CurrentYear = time.Now().Format("2006")
 
-	files, err := ioutil.ReadDir("./posts")
+	posts, err := ioutil.ReadDir("./posts")
 	if err != nil {
 		return -1, err
 	}
 
-	for _, file := range files {
+	for _, file := range posts {
 		postPath := filepath.Join("./posts", file.Name())
 		post, err := postFromFile(postPath)
 		if err != nil {
@@ -108,11 +109,31 @@ func (c *Config) Generate() (int, error) {
 		data.Posts = append(data.Posts, *post)
 	}
 
+	pages, err := ioutil.ReadDir("./pages")
+	if err != nil {
+		return -1, err
+	}
+
+	for _, file := range pages {
+		pagePath := filepath.Join("./pages", file.Name())
+		page, err := pageFromFile(pagePath)
+		if err != nil {
+			return -1, err
+		}
+		page.Name = getOutName(file.Name())
+		data.Pages = append(data.Pages, *page)
+	}
+
 	sort.Slice(data.Posts, func(i, j int) bool {
 		return data.Posts[i].Date.After(data.Posts[j].Date)
 	})
 
 	if err := copyDirs("./static", c.outDir); err != nil {
+		return -1, err
+	}
+
+	tplFiles, err := getGlobFiles("./templates/*.gohtml")
+	if err != nil {
 		return -1, err
 	}
 
@@ -130,7 +151,7 @@ func (c *Config) Generate() (int, error) {
 			}
 			return v.FieldByName(name).IsValid()
 		},
-	}).ParseFiles(getTplFiles()...)
+	}).ParseFiles(tplFiles...)
 	if err != nil {
 		return -1, err
 	}
@@ -159,6 +180,12 @@ func (c *Config) Generate() (int, error) {
 		}
 	}
 
+	for _, page := range data.Pages {
+		if err := c.pageToHTML(&data, &page, t); err != nil {
+			return -1, err
+		}
+	}
+
 	if data.URL != "" {
 		if err := c.generateRSS(&data); err != nil {
 			return -1, err
@@ -166,6 +193,10 @@ func (c *Config) Generate() (int, error) {
 	}
 
 	return len(data.Posts), nil
+}
+
+func getGlobFiles(dirPath string) ([]string, error) {
+	return filepath.Glob(dirPath)
 }
 
 func (c *Config) generateRSS(dt *data) error {
@@ -229,6 +260,29 @@ func (c *Config) postToHTML(dt *data, post *models.Post, t *template.Template) e
 	return t.ExecuteTemplate(f, "post", d)
 }
 
+func (c *Config) pageToHTML(dt *data, page *models.Page, t *template.Template) error {
+	if err := createIfNotExists(c.outDir+"/pages/", 0755); err != nil {
+		return err
+	}
+
+	outName := c.outDir + "/pages/" + getOutName(page.Name)
+	f, err := os.Create(outName)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	d := struct {
+		Data *data
+		Page *models.Page
+	}{
+		Data: dt,
+		Page: page,
+	}
+
+	return t.ExecuteTemplate(f, "page", d)
+}
+
 func postFromFile(filepath string) (*models.Post, error) {
 	f, err := os.Open(filepath)
 	if err != nil {
@@ -268,15 +322,49 @@ func postFromFile(filepath string) (*models.Post, error) {
 	return &post, nil
 }
 
-func getTplFiles() []string {
-	files, _ := filepath.Glob("./templates/*.gohtml")
-	return files
+func pageFromFile(filepath string) (*models.Page, error) {
+	f, err := os.Open(filepath)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	buf := new(bytes.Buffer)
+	io.Copy(buf, f)
+
+	splitted := strings.Split(buf.String(), "\n")
+
+	ct := 0
+	idx := 0
+	for id, line := range splitted {
+		if strings.Contains(line, "---") {
+			ct++
+		}
+		if ct == 2 {
+			idx = id
+			break
+		}
+	}
+
+	cfg := strings.NewReader(strings.Join(splitted[1:idx], "\n"))
+
+	var page models.Page
+	var p models.PageMetadata
+	if err := yaml.NewDecoder(cfg).Decode(&p); err != nil {
+		return nil, err
+	}
+
+	content := strings.Join(splitted[idx+2:], "\n")
+	md := markdown.ToHTML([]byte(content), nil, nil)
+	page.PageContent = template.HTML(string(md))
+	page.PageMetadata = p
+	return &page, nil
 }
 
 func getOutName(filename string) string {
 	splitted := strings.Split(filename, ".")
-	base := splitted[0]
-	return base + ".html"
+	base := strings.ToLower(splitted[0])
+	return strings.Replace(base, " ", "_", -1) + ".html"
 }
 
 func copyDirs(sourceDir, destDir string) error {

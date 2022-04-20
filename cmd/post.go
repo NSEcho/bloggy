@@ -31,8 +31,8 @@ var output = `---
 %s
 `
 
-var newCmd = &cobra.Command{
-	Use:   "new",
+var postCmd = &cobra.Command{
+	Use:   "post",
 	Short: "Create new post",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		joined := strings.Join(args, "_")
@@ -66,5 +66,5 @@ var newCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(newCmd)
+	RootCmd.AddCommand(postCmd)
 }
