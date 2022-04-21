@@ -16,11 +16,11 @@ var genCmd = &cobra.Command{
 			return err
 		}
 		cfg := config.NewConfig(filename)
-		count, err := cfg.Generate()
+		posts, pages, err := cfg.Generate()
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Generated %d posts\n", count)
+		fmt.Printf("Generated %d posts and %d pages\n", posts, pages)
 		return nil
 	},
 }

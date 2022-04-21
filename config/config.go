@@ -75,16 +75,16 @@ func SaveConfig(filename string) error {
 	return yaml.NewEncoder(f).Encode(&cfg)
 }
 
-func (c *Config) Generate() (int, error) {
+func (c *Config) Generate() (int, int, error) {
 	var data data
 	f, err := os.Open(c.cfgPath)
 	if err != nil {
-		return -1, err
+		return -1, -1, err
 	}
 	defer f.Close()
 
 	if err := yaml.NewDecoder(f).Decode(&data); err != nil {
-		return -1, err
+		return -1, -1, err
 	}
 
 	c.outDir = data.Outdir
@@ -96,14 +96,14 @@ func (c *Config) Generate() (int, error) {
 
 	posts, err := ioutil.ReadDir("./posts")
 	if err != nil {
-		return -1, err
+		return -1, -1, err
 	}
 
 	for _, file := range posts {
 		postPath := filepath.Join("./posts", file.Name())
 		post, err := postFromFile(postPath)
 		if err != nil {
-			return -1, err
+			return -1, -1, err
 		}
 		post.Name = getOutName(file.Name())
 		data.Posts = append(data.Posts, *post)
@@ -111,14 +111,14 @@ func (c *Config) Generate() (int, error) {
 
 	pages, err := ioutil.ReadDir("./pages")
 	if err != nil {
-		return -1, err
+		return -1, -1, err
 	}
 
 	for _, file := range pages {
 		pagePath := filepath.Join("./pages", file.Name())
 		page, err := pageFromFile(pagePath)
 		if err != nil {
-			return -1, err
+			return -1, -1, err
 		}
 		page.Name = getOutName(file.Name())
 		data.Pages = append(data.Pages, *page)
@@ -129,12 +129,12 @@ func (c *Config) Generate() (int, error) {
 	})
 
 	if err := copyDirs("./static", c.outDir); err != nil {
-		return -1, err
+		return -1, -1, err
 	}
 
 	tplFiles, err := getGlobFiles("./templates/*.gohtml")
 	if err != nil {
-		return -1, err
+		return -1, -1, err
 	}
 
 	t, err := template.New("").Funcs(template.FuncMap{
@@ -153,7 +153,7 @@ func (c *Config) Generate() (int, error) {
 		},
 	}).ParseFiles(tplFiles...)
 	if err != nil {
-		return -1, err
+		return -1, -1, err
 	}
 
 	basicTpls := map[string]string{
@@ -165,34 +165,34 @@ func (c *Config) Generate() (int, error) {
 		fpath := filepath.Join(c.outDir, out)
 		f, err := os.Create(fpath)
 		if err != nil {
-			return -1, err
+			return -1, -1, err
 		}
 		defer f.Close()
 		if err := t.ExecuteTemplate(f, tname, &data); err != nil {
-			return -1, err
+			return -1, -1, err
 		}
 	}
 
 	for _, post := range data.Posts {
 		post.Author = data.Author
 		if err := c.postToHTML(&data, &post, t); err != nil {
-			return -1, err
+			return -1, -1, err
 		}
 	}
 
 	for _, page := range data.Pages {
 		if err := c.pageToHTML(&data, &page, t); err != nil {
-			return -1, err
+			return -1, -1, err
 		}
 	}
 
 	if data.URL != "" {
 		if err := c.generateRSS(&data); err != nil {
-			return -1, err
+			return -1, -1, err
 		}
 	}
 
-	return len(data.Posts), nil
+	return len(data.Posts), len(data.Pages), nil
 }
 
 func getGlobFiles(dirPath string) ([]string, error) {
