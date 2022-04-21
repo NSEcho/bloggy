@@ -5,6 +5,7 @@ It uses the combination of yaml and markdown to create the post.
 
 It is currently used by: 
 * [https://lateralusd.github.io](https://lateralusd.github.io)
+* [https://6en6ar.github.io](https://6en6ar.github.io)
 
 # Installation
 
@@ -20,10 +21,10 @@ Generate the new config file using `bloggy cfg`, you can optionally pass the out
 
 Then edit the newly generated config to meet your needs.
 
-Run `$ ./bloggy new nameOfThePost` to create new post.
+Run `bloggy post NAME OF THE POST` to create new post.
 
 ```bash
-$ ./bloggy new new post
+$ ./bloggy post new post
 New post posts/new_post.md created
 $ cat posts/new_post.md
 ---
@@ -36,6 +37,8 @@ date: 2022-02-03T21:11:45.776829+01:00
 
 Here comes the content.
 ```
+
+To create the new page which will be shown in the navbar, use `bloggy page NAME OF THE PAGE`.
 
 After you are satisfied with your post content, just run `$ ./bloggy gen` to generate the webpages and then open index.html
 
