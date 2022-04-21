@@ -15,6 +15,10 @@ $ cd bloggy
 $ go build
 ```
 
+Open you index.html file in the browser and you should see webpage like in the image below generated.
+
+![Webpage generated](./webpage.png)
+
 # Quick setup
 
 Generate the new config file using `bloggy cfg`, you can optionally pass the output filename, otherwise cfg.yaml will be used.
