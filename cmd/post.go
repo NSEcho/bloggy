@@ -43,6 +43,10 @@ var postCmd = &cobra.Command{
 			Title:       "Test post",
 			Description: "This is short description",
 			Date:        time.Now(),
+			References: []string{
+				"https://www.google.com",
+				"https://www.facebook.com",
+			},
 		}
 
 		f, err := os.Create(filename)

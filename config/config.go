@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"github.com/gomarkdown/markdown/parser"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -76,6 +77,7 @@ func SaveConfig(filename string) error {
 }
 
 func (c *Config) Generate() (int, int, error) {
+	// Read and parse config file
 	var data data
 	f, err := os.Open(c.cfgPath)
 	if err != nil {
@@ -94,7 +96,7 @@ func (c *Config) Generate() (int, int, error) {
 
 	data.CurrentYear = time.Now().Format("2006")
 
-	posts, err := ioutil.ReadDir("./posts")
+	posts, err := os.ReadDir("./posts")
 	if err != nil {
 		return -1, -1, err
 	}
@@ -315,8 +317,11 @@ func postFromFile(filepath string) (*models.Post, error) {
 		return nil, err
 	}
 
+	extensions := parser.CommonExtensions | parser.AutoHeadingIDs
+	parser := parser.NewWithExtensions(extensions)
+
 	post.Content = strings.Join(splitted[idx+2:], "\n")
-	md := markdown.ToHTML([]byte(post.Content), nil, nil)
+	md := markdown.ToHTML([]byte(post.Content), parser, nil)
 	post.ContentMD = template.HTML(string(md))
 	post.PostMetadata = p
 	return &post, nil

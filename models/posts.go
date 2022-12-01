@@ -5,10 +5,14 @@ import (
 	"time"
 )
 
+type References []string
+
 type PostMetadata struct {
 	Title       string    `yaml:"title"`
 	Description string    `yaml:"description"`
 	Date        time.Time `yaml:"date"`
+	WithToC     bool      `yaml:"toc"`
+	References  `yaml:"refs"`
 }
 
 type Post struct {
@@ -20,8 +24,9 @@ type Post struct {
 }
 
 type PageMetadata struct {
-	Title    string `yaml:"title"`
-	Subtitle string `yaml:"description"`
+	Title      string `yaml:"title"`
+	Subtitle   string `yaml:"description"`
+	References `yaml:"refs"`
 }
 
 type Page struct {
