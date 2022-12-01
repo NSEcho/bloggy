@@ -198,6 +198,10 @@ func (c *Config) Generate() (int, int, error) {
 		copyCustom(&data)
 	}
 
+	if exists("./images") {
+		copyImages(&data)
+	}
+
 	if data.URL != "" {
 		if err := c.generateRSS(&data); err != nil {
 			return -1, -1, err
@@ -205,6 +209,29 @@ func (c *Config) Generate() (int, int, error) {
 	}
 
 	return len(data.Posts), len(data.Pages), nil
+}
+
+func copyImages(dt *data) error {
+	images, err := os.ReadDir("./images")
+	if err != nil {
+		return err
+	}
+
+	outDir := filepath.Join(dt.Outdir, "images")
+	if !exists(filepath.Join(outDir)) {
+		if err := os.Mkdir(outDir, os.ModePerm); err != nil {
+			return err
+		}
+	}
+
+	for _, image := range images {
+		imgPath := filepath.Join("./images", image.Name())
+		err := copySimpleFile(outDir, imgPath, image.Name())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func copyCustom(dt *data) error {
