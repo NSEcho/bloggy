@@ -43,6 +43,7 @@ var postCmd = &cobra.Command{
 			Title:       "Test post",
 			Description: "This is short description",
 			Date:        time.Now(),
+			WithToC:     false,
 			References: []string{
 				"https://www.google.com",
 				"https://www.facebook.com",

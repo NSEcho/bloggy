@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/gomarkdown/markdown/parser"
 	"html/template"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -320,11 +322,32 @@ func postFromFile(filepath string) (*models.Post, error) {
 	extensions := parser.CommonExtensions | parser.AutoHeadingIDs
 	parser := parser.NewWithExtensions(extensions)
 
-	post.Content = strings.Join(splitted[idx+2:], "\n")
-	md := markdown.ToHTML([]byte(post.Content), parser, nil)
+	content := strings.Join(splitted[idx+2:], "\n")
+	if p.WithToC {
+		content = prependToC(content)
+	}
+
+	md := markdown.ToHTML([]byte(content), parser, nil)
 	post.ContentMD = template.HTML(string(md))
 	post.PostMetadata = p
 	return &post, nil
+}
+
+func prependToC(oldContent string) string {
+	re := regexp.MustCompile(`##?\s?(.*)`)
+	matches := re.FindAllStringSubmatch(oldContent, -1)
+	var withToCContent = ""
+	if len(matches) > 0 {
+		withToCContent += "# Table of Contents\n"
+		for _, match := range matches {
+			// remove whitespace
+			ln := strings.Replace(match[1], " ", "-", -1)
+			// convert to lower
+			ln = strings.ToLower(ln)
+			withToCContent += fmt.Sprintf("* [%s](#%s)\n", match[1], ln)
+		}
+	}
+	return withToCContent + "\n" + oldContent
 }
 
 func pageFromFile(filepath string) (*models.Page, error) {
