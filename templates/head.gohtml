@@ -11,6 +11,15 @@
         <title>{{.BlogTitle}}</title>
         <link rel="icon" type="image/x-icon" href="../assets/favicon.ico" />
     {{ end }}
+    {{ if (checkField "Post" .) }}
+        {{ if .Data.HasCustomCSS }}
+            <link href="../css/custom.css" rel="stylesheet"/>
+        {{ end }}
+    {{ else }}
+        {{ if .HasCustomCSS }}
+            <link href="css/custom.css" rel="stylesheet"/>
+        {{ end }}
+    {{ end }}
     <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v5.15.4/js/all.js" crossorigin="anonymous"></script>
     <!-- Google fonts-->

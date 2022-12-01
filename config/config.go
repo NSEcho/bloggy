@@ -7,7 +7,6 @@ import (
 	"github.com/gomarkdown/markdown/parser"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -34,18 +33,19 @@ type outcfg struct {
 }
 
 type data struct {
-	URL         string `yaml:"url"`
-	BlogTitle   string `yaml:"title"`
-	CurrentYear string
-	TwitterLink string `yaml:"twitter"`
-	GithubLink  string `yaml:"github"`
-	Mail        string `yaml:"mail"`
-	Author      string `yaml:"author"`
-	About       string `yaml:"about"`
-	Outdir      string `yaml:"outdir"`
-	AboutMD     template.HTML
-	Posts       []models.Post
-	Pages       []models.Page
+	URL          string `yaml:"url"`
+	BlogTitle    string `yaml:"title"`
+	CurrentYear  string
+	TwitterLink  string `yaml:"twitter"`
+	GithubLink   string `yaml:"github"`
+	Mail         string `yaml:"mail"`
+	Author       string `yaml:"author"`
+	About        string `yaml:"about"`
+	Outdir       string `yaml:"outdir"`
+	AboutMD      template.HTML
+	HasCustomCSS bool
+	Posts        []models.Post
+	Pages        []models.Page
 }
 
 type Config struct {
@@ -116,7 +116,7 @@ func (c *Config) Generate() (int, int, error) {
 		data.Posts = append(data.Posts, *post)
 	}
 
-	pages, err := ioutil.ReadDir("./pages")
+	pages, err := os.ReadDir("./pages")
 	if err != nil {
 		return -1, -1, err
 	}
@@ -135,12 +135,12 @@ func (c *Config) Generate() (int, int, error) {
 		return data.Posts[i].Date.After(data.Posts[j].Date)
 	})
 
-	if err := copyDirs("./static", c.outDir); err != nil {
-		return -1, -1, err
+	customCssPath := filepath.Join("./custom", "custom.css")
+	if exists(customCssPath) {
+		data.HasCustomCSS = true
 	}
 
-	tplFiles, err := getGlobFiles("./templates/*.gohtml")
-	if err != nil {
+	if err := c.copyDirs("static", c.outDir); err != nil {
 		return -1, -1, err
 	}
 
@@ -158,7 +158,7 @@ func (c *Config) Generate() (int, int, error) {
 			}
 			return v.FieldByName(name).IsValid()
 		},
-	}).ParseFiles(tplFiles...)
+	}).ParseFS(c.embedded, "templates/*")
 	if err != nil {
 		return -1, -1, err
 	}
@@ -193,6 +193,11 @@ func (c *Config) Generate() (int, int, error) {
 		}
 	}
 
+	// copy custom bgs
+	if exists("./custom") {
+		copyCustom(&data)
+	}
+
 	if data.URL != "" {
 		if err := c.generateRSS(&data); err != nil {
 			return -1, -1, err
@@ -202,8 +207,61 @@ func (c *Config) Generate() (int, int, error) {
 	return len(data.Posts), len(data.Pages), nil
 }
 
-func getGlobFiles(dirPath string) ([]string, error) {
-	return filepath.Glob(dirPath)
+func copyCustom(dt *data) error {
+	var bgs = []string{
+		"home-bg.jpg",
+		"about-bg.jpg",
+		"post-bg.jpg",
+	}
+
+	for _, bg := range bgs {
+		fp := filepath.Join("./custom", bg)
+		if exists(fp) {
+			out := filepath.Join(dt.Outdir, "assets", "img")
+			err := copySimpleFile(out, fp, bg)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if dt.HasCustomCSS {
+		out := filepath.Join(dt.Outdir, "css")
+		err := copySimpleFile(out, filepath.Join("./custom", "custom.css"), "custom.css")
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func copySimpleFile(outDir, fullPath, name string) error {
+	in, err := os.Open(fullPath)
+	if err != nil {
+		return nil
+	}
+
+	outf := filepath.Join(outDir, name)
+	out, err := os.Create(outf)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(out, in)
+	return err
+}
+
+func (c *Config) getTemplateFiles() ([]string, error) {
+	filesFS, err := c.embedded.ReadDir("templates")
+	if err != nil {
+		return nil, err
+	}
+	files := make([]string, len(filesFS))
+	for i, f := range filesFS {
+		files[i] = f.Name()
+	}
+	return files, nil
 }
 
 func (c *Config) generateRSS(dt *data) error {
@@ -407,8 +465,8 @@ func getOutName(filename string) string {
 	return strings.Replace(base, " ", "_", -1) + ".html"
 }
 
-func copyDirs(sourceDir, destDir string) error {
-	entries, err := ioutil.ReadDir(sourceDir)
+func (c *Config) copyDirs(sourceDir, destDir string) error {
+	entries, err := c.embedded.ReadDir(sourceDir)
 	if err != nil {
 		return err
 	}
@@ -417,26 +475,20 @@ func copyDirs(sourceDir, destDir string) error {
 		sourcePath := filepath.Join(sourceDir, entry.Name())
 		destPath := filepath.Join(destDir, entry.Name())
 
-		fileInfo, err := os.Stat(sourcePath)
-		if err != nil {
-			return err
-		}
-
-		switch fileInfo.Mode() & os.ModeType {
+		switch entry.Type() & os.ModeType {
 		case os.ModeDir:
 			if err := createIfNotExists(destPath, 0755); err != nil {
 				return err
 			}
-			if err := copyDirs(sourcePath, destPath); err != nil {
+			if err := c.copyDirs(sourcePath, destPath); err != nil {
 				return err
 			}
 		default:
-			if err := copy(sourcePath, destPath); err != nil {
+			if err := c.copy(sourcePath, destPath); err != nil {
 				return err
 			}
 		}
 	}
-
 	return nil
 }
 
@@ -447,24 +499,19 @@ func exists(filePath string) bool {
 	return true
 }
 
-func copy(srcFile, dstFile string) error {
+func (c *Config) copy(srcFile, dstFile string) error {
 	out, err := os.Create(dstFile)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
 
-	in, err := os.Open(srcFile)
+	in, err := c.embedded.ReadFile(srcFile)
 	if err != nil {
 		return err
 	}
-	defer in.Close()
 
-	_, err = io.Copy(out, in)
-	if err != nil {
-		return err
-	}
-	return nil
+	return os.WriteFile(dstFile, in, os.ModePerm)
 }
 
 func createIfNotExists(dir string, perm os.FileMode) error {
