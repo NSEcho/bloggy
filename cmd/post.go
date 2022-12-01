@@ -71,5 +71,5 @@ var postCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(postCmd)
+	rootCmd.AddCommand(postCmd)
 }

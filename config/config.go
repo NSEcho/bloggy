@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"embed"
 	"fmt"
 	"github.com/gomarkdown/markdown/parser"
 	"html/template"
@@ -48,13 +49,15 @@ type data struct {
 }
 
 type Config struct {
-	cfgPath string
-	outDir  string
+	embedded embed.FS
+	cfgPath  string
+	outDir   string
 }
 
-func NewConfig(cfgPath string) *Config {
+func NewConfig(cfgPath string, embedded embed.FS) *Config {
 	return &Config{
-		cfgPath: cfgPath,
+		embedded: embedded,
+		cfgPath:  cfgPath,
 	}
 }
 

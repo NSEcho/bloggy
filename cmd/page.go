@@ -59,5 +59,5 @@ var pageCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(pageCmd)
+	rootCmd.AddCommand(pageCmd)
 }

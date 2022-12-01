@@ -15,7 +15,7 @@ var genCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		cfg := config.NewConfig(filename)
+		cfg := config.NewConfig(filename, embedded)
 		posts, pages, err := cfg.Generate()
 		if err != nil {
 			return err
@@ -26,6 +26,6 @@ var genCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(genCmd)
+	rootCmd.AddCommand(genCmd)
 	genCmd.Flags().StringP("config", "c", "cfg.yaml", "config filename")
 }

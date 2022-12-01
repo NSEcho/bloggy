@@ -25,6 +25,6 @@ var cfgCmd = &cobra.Command{
 }
 
 func init() {
-	RootCmd.AddCommand(cfgCmd)
+	rootCmd.AddCommand(cfgCmd)
 	cfgCmd.Flags().StringP("out", "o", "cfg.yaml", "config filename")
 }
