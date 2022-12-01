@@ -324,7 +324,11 @@ func postFromFile(filepath string) (*models.Post, error) {
 
 	content := strings.Join(splitted[idx+2:], "\n")
 	if p.WithToC {
-		content = prependToC(content)
+		hasRef := false
+		if len(p.References) > 0 {
+			hasRef = true
+		}
+		content = prependToC(content, hasRef)
 	}
 
 	md := markdown.ToHTML([]byte(content), parser, nil)
@@ -333,7 +337,7 @@ func postFromFile(filepath string) (*models.Post, error) {
 	return &post, nil
 }
 
-func prependToC(oldContent string) string {
+func prependToC(oldContent string, hasReferences bool) string {
 	re := regexp.MustCompile(`##?\s?(.*)`)
 	matches := re.FindAllStringSubmatch(oldContent, -1)
 	var withToCContent = ""
@@ -347,6 +351,11 @@ func prependToC(oldContent string) string {
 			withToCContent += fmt.Sprintf("* [%s](#%s)\n", match[1], ln)
 		}
 	}
+
+	if hasReferences {
+		withToCContent += fmt.Sprintf("* [References](#references)\n")
+	}
+
 	return withToCContent + "\n" + oldContent
 }
 
