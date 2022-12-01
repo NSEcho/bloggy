@@ -15,68 +15,40 @@ $ cd bloggy
 $ go build
 ```
 
-Open you index.html file in the browser and you should see webpage like in the image below generated.
-
 ![Webpage generated](./webpage.png)
 
 # Quick setup
 
-Generate the new config file using `bloggy cfg`, you can optionally pass the output filename, otherwise cfg.yaml will be used.
+To start, simply type `bloggy skeleton path_to_the_dir` which will create the necessary structure. 
+Go to the newly created directory and inside the `public` is gonna be your generated webpage.
 
-Then edit the newly generated config to meet your needs.
+# Config file flags
 
-Run `bloggy post NAME OF THE POST` to create new post.
+* `url` - end path of the blog, eg. lateralusd.github.io (used for RSS)
+* `title` - title of the blog
+* `twitter` - your twitter handle
+* `github` - path to your github page
+* `mail` - your email
+* `author` - author that will be embedded throughout the generated webpage
+* `outdir` - output where bloggy will generate the webpage
+* `about` - about text which should be rendered inside the about.html
 
-```bash
-$ ./bloggy post new post
-New post posts/new_post.md created
-$ cat posts/new_post.md
----
-title: Test post
-description: This is short description
-date: 2022-02-03T21:11:45.776829+01:00
----
+# Custom data
 
-# Introduction
+If you would like to change default post, home and post backgrounds do as following inside the `custom` directory:
 
-Here comes the content.
-```
+1. Image about-bg.jpg which will be used as the background for the about.html
+2. Image home-bg.jpg which will be used as the background for the home.html
+3. Image post-bg.jpg which will be used as the background for all posts
 
-To create the new page which will be shown in the navbar, use `bloggy page NAME OF THE PAGE`.
+If you would like to use custom CSS, you can do so by creating `custom.css` inside the `custom` directory.
 
-After you are satisfied with your post content, just run `$ ./bloggy gen` to generate the webpages and then open index.html
+# Referencing images
 
-# Sample run
+If you would like to have some images inside your generated post, first create the `images` directory inside the  directory.
+Then, put the image or images there and you can reference them in your markdown as `![Image](../images/sample.png)`.
 
-```bash
-$ bloggy cfg             
-New config "cfg.yaml" created
-$ cat cfg.yaml
-url: https://username.github.io/
-title: sample blog
-twitter: https://twitter.com/user
-github: https://github.com/user
-mail: someone@something.com
-author: Haxor
-about: About page section
-outdir: public
-$ bloggy new test post
-New post posts/test_post.md created
-$ cat posts/new_post.md 
----
-title: Test post
-description: This is short description
-date: 2022-02-03T23:09:11.961103+01:00
----
+# Generating
 
-# Introduction
-
-Here comes the content.
-
-## How to
-
-Just write markdown and when you want to reference the image, place the image inside the static/images and reference it in url ../images/nameoftheimage.png.
-
-![Image](../images/sample.png)
-$ bloggy gen
-Generated 2 posts
+After you have created everything or you just want to test it, run `bloggy gen` inside the directory 
+where you skeleton is stored and it will generate the webpage inside the `outdir` specified in the config file.
