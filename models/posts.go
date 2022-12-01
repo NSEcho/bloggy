@@ -24,9 +24,8 @@ type Post struct {
 }
 
 type PageMetadata struct {
-	Title      string `yaml:"title"`
-	Subtitle   string `yaml:"description"`
-	References `yaml:"refs"`
+	Title    string `yaml:"title"`
+	Subtitle string `yaml:"description"`
 }
 
 type Page struct {
