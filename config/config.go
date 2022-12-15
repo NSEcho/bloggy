@@ -61,6 +61,10 @@ func NewConfig(cfgPath string, embedded embed.FS) *Config {
 	}
 }
 
+func (c *Config) OutDir() string {
+	return c.outDir
+}
+
 func SaveConfig(filename string) error {
 	cfg := outcfg{
 		URL:         "https://username.github.io/",
