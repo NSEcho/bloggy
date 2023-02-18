@@ -44,6 +44,11 @@ var postCmd = &cobra.Command{
 			Description: "This is short description",
 			Date:        time.Now(),
 			WithToC:     false,
+			Tags: []string{
+				"reverse-engineering",
+				"frida",
+				"lldb",
+			},
 			References: []string{
 				"https://www.google.com",
 				"https://www.facebook.com",

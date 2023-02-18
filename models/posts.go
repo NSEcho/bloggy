@@ -6,12 +6,14 @@ import (
 )
 
 type References []string
+type Tags []string
 
 type PostMetadata struct {
 	Title       string    `yaml:"title"`
 	Description string    `yaml:"description"`
 	Date        time.Time `yaml:"date"`
 	WithToC     bool      `yaml:"toc"`
+	Tags        `yaml:"tags"`
 	References  `yaml:"refs"`
 }
 
