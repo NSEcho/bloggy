@@ -46,6 +46,12 @@ type data struct {
 	HasCustomCSS bool
 	Posts        []models.Post
 	Pages        []models.Page
+	Tags         map[string][]TagData
+}
+
+type TagData struct {
+	Name string
+	Path string
 }
 
 type Config struct {
@@ -88,6 +94,7 @@ func SaveConfig(filename string) error {
 func (c *Config) Generate() (int, int, error) {
 	// Read and parse config file
 	var data data
+	data.Tags = make(map[string][]TagData)
 	f, err := os.Open(c.cfgPath)
 	if err != nil {
 		return -1, -1, err
@@ -118,6 +125,13 @@ func (c *Config) Generate() (int, int, error) {
 		}
 		post.Name = getOutName(file.Name())
 		data.Posts = append(data.Posts, *post)
+
+		for _, tag := range post.Tags {
+			data.Tags[tag] = append(data.Tags[tag], TagData{
+				Name: post.Title,
+				Path: post.Name,
+			})
+		}
 	}
 
 	pages, err := os.ReadDir("./pages")
@@ -170,6 +184,7 @@ func (c *Config) Generate() (int, int, error) {
 	basicTpls := map[string]string{
 		"index": "index.html",
 		"about": "about.html",
+		"tags":  "tags.html",
 	}
 
 	for tname, out := range basicTpls {
@@ -377,6 +392,10 @@ func (c *Config) pageToHTML(dt *data, page *models.Page, t *template.Template) e
 	}
 
 	return t.ExecuteTemplate(f, "page", d)
+}
+
+func (c *Config) generateTagsMain(dt *data, t *template.Template) error {
+	return nil
 }
 
 func postFromFile(filepath string) (*models.Post, error) {
