@@ -430,7 +430,7 @@ func postFromFile(filepath string) (*models.Post, error) {
 }
 
 func prependToC(oldContent string, hasReferences bool) string {
-	re := regexp.MustCompile(`##?\s?(.*)`)
+	re := regexp.MustCompile(`##?\s(.*)`)
 	matches := re.FindAllStringSubmatch(oldContent, -1)
 	var withToCContent = ""
 	if len(matches) > 0 {
