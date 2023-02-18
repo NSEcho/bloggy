@@ -30,6 +30,10 @@
                         <div class="post-heading">
                             <h1>{{.Post.Title}}</h1>
                             <h2 class="subheading">{{.Post.Description}}</h2>
+                            {{ range .Post.Tags }}
+                                <button type="button" class="btn btn-primary btn-sm">{{.}}</button>
+                            {{ end }}
+                            <br><br>
                             <span class="meta">
                                 Posted by
                                 <a href="#!">{{.Post.Author}}</a>
@@ -50,7 +54,6 @@
                 </div>
             </div>
             {{ template "refs" .Post.References }}
-        </article>
         <!-- Footer-->
         {{ template "links" .Data }}
         <!-- Bootstrap core JS-->
