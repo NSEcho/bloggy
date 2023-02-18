@@ -32,7 +32,7 @@
                             <h1>{{.Post.Title}}</h1>
                             <h2 class="subheading">{{.Post.Description}}</h2>
                             {{ range .Post.Tags }}
-                                <button type="button" class="btn btn-primary btn-sm">{{.}}</button>
+                                <a href="../tags/{{.}}.html"><button type="button" class="btn btn-primary btn-sm">{{.}}</button></a>
                             {{ end }}
                             <br><br>
                             <span class="meta">

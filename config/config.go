@@ -212,6 +212,12 @@ func (c *Config) Generate() (int, int, error) {
 		}
 	}
 
+	for name, tag := range data.Tags {
+		if err := c.tagToHTML(&data, name, tag, t); err != nil {
+			return -1, -1, err
+		}
+	}
+
 	// copy custom bgs
 	if exists("./custom") {
 		copyCustom(&data)
@@ -394,8 +400,29 @@ func (c *Config) pageToHTML(dt *data, page *models.Page, t *template.Template) e
 	return t.ExecuteTemplate(f, "page", d)
 }
 
-func (c *Config) generateTagsMain(dt *data, t *template.Template) error {
-	return nil
+func (c *Config) tagToHTML(dt *data, name string, tags []TagData, t *template.Template) error {
+	if err := createIfNotExists(c.outDir+"/tags/", 0755); err != nil {
+		return err
+	}
+
+	outName := c.outDir + "/tags/" + getOutName(name)
+	f, err := os.Create(outName)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	d := struct {
+		Data *data
+		Name string
+		Tags []TagData
+	}{
+		Data: dt,
+		Name: name,
+		Tags: tags,
+	}
+
+	return t.ExecuteTemplate(f, "tagpage", d)
 }
 
 func postFromFile(filepath string) (*models.Post, error) {

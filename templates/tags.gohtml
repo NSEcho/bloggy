@@ -42,7 +42,8 @@
                 <div class="col-md-10 col-lg-8 col-xl-7">
                     <ul>
                     {{ range $k, $v := .Tags}}
-                        <li><button type="button" class="btn btn-primary btn-sm">{{$k}}</button>
+                        <li>
+                            <a href="tags/{{$k}}.html"><button type="button" class="btn btn-primary btn-sm">{{$k}}</button></a>
                             <ul>
                                 {{ range $v }}
                                     <li><a href="posts/{{.Path}}">{{.Name}}</a></li>
