@@ -469,12 +469,16 @@ func postFromFile(filepath string) (*models.Post, error) {
 		content = prependToC(content, hasRef)
 	}
 
+	gistRe := regexp.MustCompile(`<p>gist:<a\shref="(.*?)".*?</p>`)
+
 	md := markdown.ToHTML([]byte(content), parser, nil)
-	post.ContentMD = template.HTML(string(md))
+	replacedWithGists := gistRe.ReplaceAllString(string(md), `<script src="$1"></script>`)
+	post.ContentMD = template.HTML(replacedWithGists)
 	post.PostMetadata = p
 	return &post, nil
 }
 
+// prependToC generates table of contents markdown
 func prependToC(oldContent string, hasReferences bool) string {
 	re := regexp.MustCompile(`##?\s(.*)`)
 	matches := re.FindAllStringSubmatch(oldContent, -1)
@@ -497,6 +501,7 @@ func prependToC(oldContent string, hasReferences bool) string {
 	return withToCContent + "\n" + oldContent
 }
 
+// pageFromFile generates *models.Page from raw markdown file
 func pageFromFile(filepath string) (*models.Page, error) {
 	f, err := os.Open(filepath)
 	if err != nil {

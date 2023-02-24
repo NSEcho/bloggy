@@ -52,3 +52,9 @@ Then, put the image or images there and you can reference them in your markdown 
 
 After you have created everything or you just want to test it, run `bloggy gen` inside the directory 
 where you skeleton is stored and it will generate the webpage inside the `outdir` specified in the config file.
+
+# Embedding data
+
+You can embed gist with `gist:/path/to/the/embed/script/code/from/the/gist.github.com`.
+
+Example: `gist:https://gist.github.com/lateralusd/12sdffsdfssd.js`.
