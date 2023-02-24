@@ -55,6 +55,10 @@ var skeletonCmd = &cobra.Command{
 			Description: "This is short description",
 			Date:        time.Now(),
 			WithToC:     false,
+			Tags: []string{
+				"frida",
+				"re",
+			},
 			References: []string{
 				"https://www.google.com",
 				"https://www.facebook.com",
