@@ -329,7 +329,7 @@ func (c *Config) generateRSS(dt *data) error {
 		item := feeds.Item{
 			Title: post.Title,
 			Link: &feeds.Link{
-				Href: dt.URL + post.Name,
+				Href: dt.URL + "posts/" + post.Name,
 			},
 			Description: post.Description,
 			Author:      &feeds.Author{Name: dt.Author, Email: dt.Mail},
