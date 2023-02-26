@@ -42,6 +42,7 @@ type data struct {
 	Author       string `yaml:"author"`
 	About        string `yaml:"about"`
 	Outdir       string `yaml:"outdir"`
+	DiffBlog     string `yaml:"diffblog"`
 	AboutMD      template.HTML
 	HasCustomCSS bool
 	Posts        []models.Post
