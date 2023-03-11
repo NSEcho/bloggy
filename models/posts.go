@@ -15,6 +15,7 @@ type PostMetadata struct {
 	WithToC     bool      `yaml:"toc"`
 	Tags        `yaml:"tags"`
 	References  `yaml:"refs"`
+	Draft       bool `yaml:"draft"`
 }
 
 type Post struct {

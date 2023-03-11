@@ -15,8 +15,12 @@ var genCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		drafts, err := cmd.Flags().GetBool("drafts")
+		if err != nil {
+			return err
+		}
 		cfg := config.NewConfig(filename, embedded)
-		posts, pages, err := cfg.Generate()
+		posts, pages, err := cfg.Generate(drafts)
 		if err != nil {
 			return err
 		}
@@ -29,4 +33,5 @@ var genCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(genCmd)
 	genCmd.Flags().StringP("config", "c", "cfg.yaml", "config filename")
+	genCmd.Flags().BoolP("drafts", "d", false, "generate with drafts")
 }

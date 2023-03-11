@@ -92,7 +92,7 @@ func SaveConfig(filename string) error {
 	return yaml.NewEncoder(f).Encode(&cfg)
 }
 
-func (c *Config) Generate() (int, int, error) {
+func (c *Config) Generate(genDrafts bool) (int, int, error) {
 	// Read and parse config file
 	var data data
 	data.Tags = make(map[string][]TagData)
@@ -124,14 +124,28 @@ func (c *Config) Generate() (int, int, error) {
 		if err != nil {
 			return -1, -1, err
 		}
-		post.Name = getOutName(file.Name())
-		data.Posts = append(data.Posts, *post)
+		if post.Draft == true {
+			if genDrafts {
+				post.Name = getOutName(file.Name())
+				data.Posts = append(data.Posts, *post)
 
-		for _, tag := range post.Tags {
-			data.Tags[tag] = append(data.Tags[tag], TagData{
-				Name: post.Title,
-				Path: post.Name,
-			})
+				for _, tag := range post.Tags {
+					data.Tags[tag] = append(data.Tags[tag], TagData{
+						Name: post.Title,
+						Path: post.Name,
+					})
+				}
+			}
+		} else {
+			post.Name = getOutName(file.Name())
+			data.Posts = append(data.Posts, *post)
+
+			for _, tag := range post.Tags {
+				data.Tags[tag] = append(data.Tags[tag], TagData{
+					Name: post.Title,
+					Path: post.Name,
+				})
+			}
 		}
 	}
 
