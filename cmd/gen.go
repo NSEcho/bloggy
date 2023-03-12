@@ -33,5 +33,5 @@ var genCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(genCmd)
 	genCmd.Flags().StringP("config", "c", "cfg.yaml", "config filename")
-	genCmd.Flags().BoolP("drafts", "d", false, "generate with drafts")
+	genCmd.Flags().BoolP("drafts", "d", true, "generate with drafts")
 }
