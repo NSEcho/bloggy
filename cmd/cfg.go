@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/lateralusd/bloggy/config"
+	"github.com/nsecho/bloggy/config"
 	"github.com/spf13/cobra"
 )
 

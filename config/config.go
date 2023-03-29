@@ -17,8 +17,14 @@ import (
 
 	"github.com/gomarkdown/markdown"
 	"github.com/gorilla/feeds"
-	"github.com/lateralusd/bloggy/models"
+	"github.com/nsecho/bloggy/models"
 	"gopkg.in/yaml.v3"
+)
+
+var (
+	gistRe    = regexp.MustCompile(`<p>gist:<a\shref="(.*?)".*?</p>`)
+	headersRe = regexp.MustCompile(`##?\s(.*)`)
+	embedRe   = regexp.MustCompile(`<embed:(.*?):(.*?)>`)
 )
 
 type outcfg struct {
@@ -484,8 +490,6 @@ func postFromFile(filepath string) (*models.Post, error) {
 		content = prependToC(content, hasRef)
 	}
 
-	gistRe := regexp.MustCompile(`<p>gist:<a\shref="(.*?)".*?</p>`)
-
 	md := markdown.ToHTML([]byte(content), parser, nil)
 	replacedWithGists := gistRe.ReplaceAllString(string(md), `<script src="$1"></script>`)
 	post.ContentMD = template.HTML(replacedWithGists)
@@ -495,8 +499,7 @@ func postFromFile(filepath string) (*models.Post, error) {
 
 // prependToC generates table of contents markdown
 func prependToC(oldContent string, hasReferences bool) string {
-	re := regexp.MustCompile(`##?\s(.*)`)
-	matches := re.FindAllStringSubmatch(oldContent, -1)
+	matches := headersRe.FindAllStringSubmatch(oldContent, -1)
 	var withToCContent = ""
 	if len(matches) > 0 {
 		withToCContent += "# Table of Contents\n"

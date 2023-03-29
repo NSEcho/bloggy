@@ -1,4 +1,4 @@
-module github.com/lateralusd/bloggy
+module github.com/nsecho/bloggy
 
 go 1.17
 

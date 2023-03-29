@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/lateralusd/bloggy/models"
+	"github.com/nsecho/bloggy/models"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )

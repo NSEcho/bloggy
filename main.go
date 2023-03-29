@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lateralusd/bloggy/cmd"
+	"github.com/nsecho/bloggy/cmd"
 )
 
 //go:embed static/* templates/*
