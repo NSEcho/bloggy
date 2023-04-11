@@ -4,7 +4,7 @@ Custom static site generator.
 It uses the combination of yaml and markdown to create the post.
 
 It is currently used by: 
-* [https://lateralusd.github.io](https://lateralusd.github.io)
+* [https://nsecho.github.io](https://nsecho.github.io)
 * [https://6en6ar.github.io](https://6en6ar.github.io)
 
 # Installation
