@@ -24,7 +24,7 @@ import (
 var (
 	gistRe    = regexp.MustCompile(`<p>gist:<a\shref="(.*?)".*?</p>`)
 	headersRe = regexp.MustCompile(`##?\s(.*)`)
-	embedRe   = regexp.MustCompile(`<embed:(.*?):(.*?)>`)
+	embedRe   = regexp.MustCompile(`embed:(.*):([^\s]+)`)
 )
 
 type outcfg struct {
@@ -447,7 +447,7 @@ func (c *Config) tagToHTML(dt *data, name string, tags []TagData, t *template.Te
 }
 
 func postFromFile(filepath string) (*models.Post, error) {
-	f, err := os.Open(filepath)
+	f, err := os.OpenFile(filepath, os.O_RDWR, os.ModePerm)
 	if err != nil {
 		return nil, err
 	}
@@ -456,7 +456,16 @@ func postFromFile(filepath string) (*models.Post, error) {
 	buf := new(bytes.Buffer)
 	io.Copy(buf, f)
 
-	splitted := strings.Split(buf.String(), "\n")
+	rawContent := buf.String()
+	matches := embedRe.FindAllStringSubmatch(rawContent, -1)
+	if len(matches) > 0 {
+		newContent := parseEmbeddedFiles(rawContent)
+		f.Truncate(0)
+		f.Write([]byte(newContent))
+		return postFromFile(filepath)
+	}
+
+	splitted := strings.Split(rawContent, "\n")
 
 	ct := 0
 	idx := 0
@@ -517,6 +526,35 @@ func prependToC(oldContent string, hasReferences bool) string {
 	}
 
 	return withToCContent + "\n" + oldContent
+}
+
+func parseEmbeddedFiles(postContent string) string {
+	parsed := embedRe.ReplaceAllFunc([]byte(postContent), func(bt []byte) []byte {
+		splitted := strings.Split(string(bt), ":")
+		if len(splitted) != 3 {
+			return bt
+		}
+
+		buf := new(bytes.Buffer)
+		hdr := []byte{'`', '`', '`'}
+		ftr := hdr
+
+		hdr = append(hdr, []byte(splitted[2])...)
+		hdr = append(hdr, '\n')
+		f, err := os.Open(splitted[1])
+		if err != nil {
+			return bt
+		}
+		defer f.Close()
+
+		buf.Write(hdr)
+		io.Copy(buf, f)
+		buf.Write([]byte{'\n'})
+		buf.Write(ftr)
+
+		return buf.Bytes()
+	})
+	return string(parsed)
 }
 
 // pageFromFile generates *models.Page from raw markdown file
