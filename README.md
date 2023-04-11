@@ -32,6 +32,7 @@ Go to the newly created directory and inside the `public` is gonna be your gener
 * `author` - author that will be embedded throughout the generated webpage
 * `outdir` - output where bloggy will generate the webpage
 * `about` - about text which should be rendered inside the about.html
+* `diffblog` - diffblog key to embed view data on your page
 
 # Custom data
 
@@ -41,12 +42,16 @@ If you would like to change default post, home and post backgrounds do as follow
 2. Image home-bg.jpg which will be used as the background for the home.html
 3. Image post-bg.jpg which will be used as the background for all posts
 
-If you would like to use custom CSS, you can do so by creating `custom.css` inside the `custom` directory.
+If you would like to use custom CSS, you can do so by creating `custom.css` inside the `custom` directory. Also, you can add `favicon.ico` to custom directory(this is still WIP).
 
 # Referencing images
 
 If you would like to have some images inside your generated post, first create the `images` directory inside the  directory.
 Then, put the image or images there and you can reference them in your markdown as `![Image](../images/sample.png)`.
+
+# Embedding files
+
+Sometimes, you want to show some file content, you can do that easily inside your post with `embed:filepath:syntax`(e.g. `embed:/tmp/cfg.yaml:yaml`). Running `bloggy gen` the first time will substitute the line with the contents of the file.
 
 # Generating
 
