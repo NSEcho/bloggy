@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"github.com/gomarkdown/markdown/parser"
+	"gopkg.in/yaml.v2"
 	"html/template"
 	"io"
 	"os"
@@ -18,7 +19,6 @@ import (
 	"github.com/gomarkdown/markdown"
 	"github.com/gorilla/feeds"
 	"github.com/nsecho/bloggy/models"
-	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -496,7 +496,7 @@ func postFromFile(filepath string) (*models.Post, error) {
 		if len(p.References) > 0 {
 			hasRef = true
 		}
-		content = prependToC(content, hasRef)
+		content = prependToC(p.Title, content, hasRef)
 	}
 
 	md := markdown.ToHTML([]byte(content), parser, nil)
@@ -507,10 +507,11 @@ func postFromFile(filepath string) (*models.Post, error) {
 }
 
 // prependToC generates table of contents markdown
-func prependToC(oldContent string, hasReferences bool) string {
+func prependToC(title, oldContent string, hasReferences bool) string {
 	matches := headersRe.FindAllStringSubmatch(oldContent, -1)
 	var withToCContent = ""
 	if len(matches) > 0 {
+		withToCContent += "# GObjCResolv\n"
 		withToCContent += "# Table of Contents\n"
 		for _, match := range matches {
 			// remove whitespace
