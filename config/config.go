@@ -104,24 +104,24 @@ func SaveConfig(filename string) error {
 
 func (c *Config) Generate(genDrafts bool) (int, int, error) {
 	// Read and parse config file
-	var data data
-	data.Tags = make(map[string][]TagData)
+	var dt data
+	dt.Tags = make(map[string][]TagData)
 	f, err := os.Open(c.cfgPath)
 	if err != nil {
 		return -1, -1, err
 	}
 	defer f.Close()
 
-	if err := yaml.NewDecoder(f).Decode(&data); err != nil {
+	if err := yaml.NewDecoder(f).Decode(&dt); err != nil {
 		return -1, -1, err
 	}
 
-	c.outDir = data.Outdir
+	c.outDir = dt.Outdir
 
-	md := markdown.ToHTML([]byte(data.About), nil, nil)
-	data.AboutMD = template.HTML(string(md))
+	md := markdown.ToHTML([]byte(dt.About), nil, nil)
+	dt.AboutMD = template.HTML(string(md))
 
-	data.CurrentYear = time.Now().Format("2006")
+	dt.CurrentYear = time.Now().Format("2006")
 
 	posts, err := os.ReadDir("./posts")
 	if err != nil {
@@ -137,10 +137,10 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 		if post.Draft == true {
 			if genDrafts {
 				post.Name = getOutName(file.Name())
-				data.Posts = append(data.Posts, *post)
+				dt.Posts = append(dt.Posts, *post)
 
 				for _, tag := range post.Tags {
-					data.Tags[tag] = append(data.Tags[tag], TagData{
+					dt.Tags[tag] = append(dt.Tags[tag], TagData{
 						Name: post.Title,
 						Path: post.Name,
 					})
@@ -148,10 +148,10 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 			}
 		} else {
 			post.Name = getOutName(file.Name())
-			data.Posts = append(data.Posts, *post)
+			dt.Posts = append(dt.Posts, *post)
 
 			for _, tag := range post.Tags {
-				data.Tags[tag] = append(data.Tags[tag], TagData{
+				dt.Tags[tag] = append(dt.Tags[tag], TagData{
 					Name: post.Title,
 					Path: post.Name,
 				})
@@ -171,16 +171,16 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 			return -1, -1, err
 		}
 		page.Name = getOutName(file.Name())
-		data.Pages = append(data.Pages, *page)
+		dt.Pages = append(dt.Pages, *page)
 	}
 
-	sort.Slice(data.Posts, func(i, j int) bool {
-		return data.Posts[i].Date.After(data.Posts[j].Date)
+	sort.Slice(dt.Posts, func(i, j int) bool {
+		return dt.Posts[i].Date.After(dt.Posts[j].Date)
 	})
 
 	customCssPath := filepath.Join("./custom", "custom.css")
 	if exists(customCssPath) {
-		data.HasCustomCSS = true
+		dt.HasCustomCSS = true
 	}
 
 	if err := c.copyDirs("static", c.outDir); err != nil {
@@ -201,6 +201,12 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 			}
 			return v.FieldByName(name).IsValid()
 		},
+		"inc": func(value int) int {
+			return value + 1
+		},
+		"dec": func(value int) int {
+			return value - 1
+		},
 	}).ParseFS(c.embedded, "templates/*")
 	if err != nil {
 		return -1, -1, err
@@ -212,22 +218,36 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 		"tags":  "tags.html",
 	}
 
+	perPage := 5
+	if dt.PostsPerPage != 0 {
+		perPage = dt.PostsPerPage
+	}
+
 	pagePosts := make(map[int][]models.Post)
 	ctr := 1
 
-	for i, post := range data.Posts {
-		if i%data.PostsPerPage == 0 && i != 0 {
+	for i, post := range dt.Posts {
+		if i%perPage == 0 && i != 0 {
 			ctr++
 		}
 		pagePosts[ctr] = append(pagePosts[ctr], post)
 	}
 
-	originalPosts := make([]models.Post, len(data.Posts))
-	copy(originalPosts, data.Posts)
+	originalPosts := make([]models.Post, len(dt.Posts))
+	copy(originalPosts, dt.Posts)
 
 	for k, v := range pagePosts {
-		data.Posts = make([]models.Post, len(v))
-		copy(data.Posts, v)
+		dt.Posts = make([]models.Post, len(v))
+		copy(dt.Posts, v)
+		tplData := struct {
+			Data        data
+			CurrentPage int
+			TotalPages  int
+		}{
+			Data:        dt,
+			CurrentPage: k,
+			TotalPages:  len(pagePosts),
+		}
 		if k == 1 {
 			for tpname, out := range basicTpls {
 				fpath := filepath.Join(c.outDir, out)
@@ -236,61 +256,70 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 					return -1, -1, err
 				}
 				defer f.Close()
-				if err := t.ExecuteTemplate(f, tpname, &data); err != nil {
-					return -1, -1, err
+				if tpname == "index" {
+					if err := t.ExecuteTemplate(f, tpname, tplData); err != nil {
+						return -1, -1, err
+					}
+				} else {
+					if err := t.ExecuteTemplate(f, tpname, &dt); err != nil {
+						return -1, -1, err
+					}
 				}
 			}
 		} else {
+			dirName := filepath.Join(c.outDir, "pgs", strconv.Itoa(k))
+			os.MkdirAll(dirName, os.ModePerm)
+			fpath := filepath.Join(dirName, "index.html")
+			f, err := os.Create(fpath)
+			if err != nil {
+				return -1, -1, err
+			}
+			defer f.Close()
+			if err := t.ExecuteTemplate(f, "pgs", &tplData); err != nil {
+				return -1, -1, err
+			}
+		}
+	}
 
-		}
-		dirName := filepath.Join(c.outDir, "pgs", strconv.Itoa(k))
-		os.MkdirAll(dirName, os.ModePerm)
-		fpath := filepath.Join(dirName, "index.html")
-		f, err := os.Create(fpath)
-		if err != nil {
-			return -1, -1, err
-		}
-		defer f.Close()
-		if err := t.ExecuteTemplate(f, "pgs", &data); err != nil {
+	dt.Posts = make([]models.Post, len(originalPosts))
+
+	copy(dt.Posts, originalPosts)
+
+	for _, post := range dt.Posts {
+		post.Author = dt.Author
+		if err := c.postToHTML(&dt, &post, t); err != nil {
 			return -1, -1, err
 		}
 	}
 
-	for _, post := range data.Posts {
-		post.Author = data.Author
-		if err := c.postToHTML(&data, &post, t); err != nil {
+	for _, page := range dt.Pages {
+		if err := c.pageToHTML(&dt, &page, t); err != nil {
 			return -1, -1, err
 		}
 	}
 
-	for _, page := range data.Pages {
-		if err := c.pageToHTML(&data, &page, t); err != nil {
-			return -1, -1, err
-		}
-	}
-
-	for name, tag := range data.Tags {
-		if err := c.tagToHTML(&data, name, tag, t); err != nil {
+	for name, tag := range dt.Tags {
+		if err := c.tagToHTML(&dt, name, tag, t); err != nil {
 			return -1, -1, err
 		}
 	}
 
 	// copy custom bgs
 	if exists("./custom") {
-		copyCustom(&data)
+		copyCustom(&dt)
 	}
 
 	if exists("./images") {
-		copyImages(&data)
+		copyImages(&dt)
 	}
 
-	if data.URL != "" {
-		if err := c.generateRSS(&data); err != nil {
+	if dt.URL != "" {
+		if err := c.generateRSS(&dt); err != nil {
 			return -1, -1, err
 		}
 	}
 
-	return len(data.Posts), len(data.Pages), nil
+	return len(dt.Posts), len(dt.Pages), nil
 }
 
 func copyImages(dt *data) error {

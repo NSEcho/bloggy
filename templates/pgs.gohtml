@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-        <title>{{.BlogTitle}}</title>
+        <title>{{.Data.BlogTitle}}</title>
         <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" />
-    {{ if .HasCustomCSS }}
+    {{ if .Data.HasCustomCSS }}
         <link href="../../css/custom.css" rel="stylesheet"/>
     {{ end }}
     <!-- Font Awesome icons (free version)-->
@@ -32,7 +32,7 @@
                     <ul class="navbar-nav ms-auto py-4 py-lg-0">
                         <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="../../index.html">Home</a></li>
                         <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="../../about.html">About</a></li>
-                        {{ range .Pages }}
+                        {{ range .Data.Pages }}
                             <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="../../pages/{{.Name}}">{{.Title}}</a></li>
                         {{ end }}
                         <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="../../tags.html">Tags</a></li>
@@ -46,7 +46,7 @@
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
                         <div class="site-heading">
-                            <h1>{{.BlogTitle}} blog</h1>
+                            <h1>{{.Data.BlogTitle}} blog</h1>
                         </div>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
             <div class="row gx-4 gx-lg-5 justify-content-center">
                 <div class="col-md-10 col-lg-8 col-xl-7">
                     <!-- Post preview-->
-                    {{ range .Posts }}
+                    {{ range .Data.Posts }}
                     <div class="post-preview">
                         <a href="../../posts/{{.Name}}">
                             <h2 class="post-title">{{.Title}}</h2>
@@ -65,7 +65,7 @@
                         </a>
                         <p class="post-meta">
                             Posted by
-                            <a href="#!">{{$.Author}}</a>
+                            <a href="#!">{{$.Data.Author}}</a>
                             on {{printDate .Date}}
                         </p>
                     </div>
@@ -74,10 +74,47 @@
                     {{ end }}
                     <!--<div class="d-flex justify-content-end mb-4"><a class="btn btn-primary text-uppercase" href="#!">Older Posts →</a></div>!-->
                 </div>
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    <nav aria-label="Pages">
+                        <ul class="pagination justify-content-center">
+                            {{ if (eq .CurrentPage 2 )}}
+                                <li class="page-item"><a class="page-link" href="../../index.html" tabindex="-1">Previous</a></li>
+                            {{ else }}
+                                <li class="page-item">
+                                    <a class="page-link" href="../{{dec .CurrentPage}}/index.html" tabindex="-1">Previous</a>
+                                </li>
+                            {{ end }}
+                            {{ if (eq .CurrentPage 2)}}
+                                <li class="page-item"><a class="page-link" href="../../index.html" tabindex="-1">1</a></li>
+                            {{ else }}
+                                <li class="page-item">
+                                    <a class="page-link" href="../{{dec .CurrentPage}}/index.html">{{dec .CurrentPage}}</a>
+                                </li>
+                            {{ end }}
+                            <li class="page-item active">
+                                <a class="page-link" href="#">{{.CurrentPage}}</a>
+                            </li>
+                            {{ if (eq .TotalPages .CurrentPage )}}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#">{{ inc .CurrentPage }}</a>
+                                </li>
+                            {{ else }}
+                                <li class="page-item"><a class="page-link" href="../{{inc .CurrentPage}}/index.html">{{inc .CurrentPage}}</a></li>
+                            {{ end }}
+                            {{ if (eq .TotalPages .CurrentPage )}}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+                            {{ else }}
+                                <li class="page-item"><a class="page-link" href="../{{inc .CurrentPage}}/index.html">Next</a></li>
+                            {{ end }}
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </div>
         <!-- Footer-->
-        {{ template "links" . }}
+        {{ template "links" .Data }}
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS-->

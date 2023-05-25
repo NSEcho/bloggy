@@ -1,7 +1,7 @@
 {{ define "index" }}
 <!DOCTYPE html>
 <html lang="en">
-    {{ template "head" . }}
+    {{ template "head" .Data }}
     <body>
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
@@ -15,7 +15,7 @@
                     <ul class="navbar-nav ms-auto py-4 py-lg-0">
                         <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
                         <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
-                        {{ range .Pages }}
+                        {{ range .Data.Pages }}
                             <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="pages/{{.Name}}">{{.Title}}</a></li>
                         {{ end }}
                         <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="tags.html">Tags</a></li>
@@ -24,12 +24,12 @@
             </div>
         </nav>
         <!-- Page Header-->
-        <header class="masthead" style="background-image: url('assets/img/home-bg.jpg')">
+        <header class="masthead" style="background-image: url('./assets/img/home-bg.jpg')">
             <div class="container position-relative px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
                         <div class="site-heading">
-                            <h1>{{.BlogTitle}} blog</h1>
+                            <h1>{{.Data.BlogTitle}} blog</h1>
                         </div>
                     </div>
                 </div>
@@ -40,7 +40,7 @@
             <div class="row gx-4 gx-lg-5 justify-content-center">
                 <div class="col-md-10 col-lg-8 col-xl-7">
                     <!-- Post preview-->
-                    {{ range .Posts }}
+                    {{ range .Data.Posts }}
                     <div class="post-preview">
                         <a href="posts/{{.Name}}">
                             <h2 class="post-title">{{.Title}}</h2>
@@ -48,7 +48,7 @@
                         </a>
                         <p class="post-meta">
                             Posted by
-                            <a href="#!">{{$.Author}}</a>
+                            <a href="#!">{{$.Data.Author}}</a>
                             on {{printDate .Date}}
                         </p>
                     </div>
@@ -57,10 +57,35 @@
                     {{ end }}
                     <!--<div class="d-flex justify-content-end mb-4"><a class="btn btn-primary text-uppercase" href="#!">Older Posts →</a></div>!-->
                 </div>
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    <nav aria-label="Pages">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Previous</a>
+                            </li>
+                            <li class="page-item active">
+                                <a class="page-link" href="#">1</a>
+                            </li>
+                            {{ if (gt .TotalPages 1) }}
+                            <li class="page-item">
+                                <a class="page-link" href="pgs/2/index.html">2</a>
+                            </li>
+                            {{ end }}
+                            {{ if (gt .TotalPages 2) }}
+                            <li class="page-item"><a class="page-link" href="pgs/3/index.html">3</a></li>
+                            {{ end }}
+                            {{ if (gt .TotalPages 1) }}
+                            <li class="page-item">
+                                <a class="page-link" href="pgs/2/index.html">Next</a>
+                            </li>
+                            {{ end }}
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </div>
         <!-- Footer-->
-        {{ template "links" . }}
+        {{ template "links" .Data }}
         <!-- Bootstrap core JS-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS-->
