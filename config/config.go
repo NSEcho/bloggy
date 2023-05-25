@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"github.com/gomarkdown/markdown/parser"
-	"gopkg.in/yaml.v2"
 	"html/template"
 	"io"
 	"os"
@@ -16,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gomarkdown/markdown/parser"
+	"gopkg.in/yaml.v2"
 
 	"github.com/gomarkdown/markdown"
 	"github.com/gorilla/feeds"
@@ -576,7 +577,6 @@ func prependToC(title, oldContent string, hasReferences bool) string {
 	matches := headersRe.FindAllStringSubmatch(oldContent, -1)
 	var withToCContent = ""
 	if len(matches) > 0 {
-		withToCContent += fmt.Sprintf("# %s\n", title)
 		withToCContent += "# Table of Contents\n"
 		for _, match := range matches {
 			// remove whitespace
