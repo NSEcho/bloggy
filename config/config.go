@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -28,14 +29,15 @@ var (
 )
 
 type outcfg struct {
-	URL         string `yaml:"url"`
-	BlogTitle   string `yaml:"title"`
-	TwitterLink string `yaml:"twitter"`
-	GithubLink  string `yaml:"github"`
-	Mail        string `yaml:"mail"`
-	Author      string `yaml:"author"`
-	About       string `yaml:"about"`
-	Outdir      string `yaml:"outdir"`
+	URL          string `yaml:"url"`
+	BlogTitle    string `yaml:"title"`
+	TwitterLink  string `yaml:"twitter"`
+	GithubLink   string `yaml:"github"`
+	Mail         string `yaml:"mail"`
+	Author       string `yaml:"author"`
+	About        string `yaml:"about"`
+	Outdir       string `yaml:"outdir"`
+	PostsPerPage int    `yaml:"posts_per_page"`
 }
 
 type data struct {
@@ -49,6 +51,7 @@ type data struct {
 	About        string `yaml:"about"`
 	Outdir       string `yaml:"outdir"`
 	DiffBlog     string `yaml:"diffblog"`
+	PostsPerPage int    `yaml:"posts_per_page"`
 	AboutMD      template.HTML
 	HasCustomCSS bool
 	Posts        []models.Post
@@ -80,14 +83,15 @@ func (c *Config) OutDir() string {
 
 func SaveConfig(filename string) error {
 	cfg := outcfg{
-		URL:         "https://username.github.io/",
-		BlogTitle:   "sample blog",
-		TwitterLink: "https://twitter.com/user",
-		GithubLink:  "https://github.com/user",
-		Mail:        "someone@something.com",
-		Author:      "Haxor",
-		About:       "About page section",
-		Outdir:      "public",
+		URL:          "https://username.github.io/",
+		BlogTitle:    "sample blog",
+		TwitterLink:  "https://twitter.com/user",
+		GithubLink:   "https://github.com/user",
+		Mail:         "someone@something.com",
+		Author:       "Haxor",
+		About:        "About page section",
+		Outdir:       "public",
+		PostsPerPage: 5,
 	}
 	f, err := os.Create(filename)
 	if err != nil {
@@ -208,14 +212,46 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 		"tags":  "tags.html",
 	}
 
-	for tname, out := range basicTpls {
-		fpath := filepath.Join(c.outDir, out)
+	pagePosts := make(map[int][]models.Post)
+	ctr := 1
+
+	for i, post := range data.Posts {
+		if i%data.PostsPerPage == 0 && i != 0 {
+			ctr++
+		}
+		pagePosts[ctr] = append(pagePosts[ctr], post)
+	}
+
+	originalPosts := make([]models.Post, len(data.Posts))
+	copy(originalPosts, data.Posts)
+
+	for k, v := range pagePosts {
+		data.Posts = make([]models.Post, len(v))
+		copy(data.Posts, v)
+		if k == 1 {
+			for tpname, out := range basicTpls {
+				fpath := filepath.Join(c.outDir, out)
+				f, err := os.Create(fpath)
+				if err != nil {
+					return -1, -1, err
+				}
+				defer f.Close()
+				if err := t.ExecuteTemplate(f, tpname, &data); err != nil {
+					return -1, -1, err
+				}
+			}
+		} else {
+
+		}
+		dirName := filepath.Join(c.outDir, "pgs", strconv.Itoa(k))
+		os.MkdirAll(dirName, os.ModePerm)
+		fpath := filepath.Join(dirName, "index.html")
 		f, err := os.Create(fpath)
 		if err != nil {
 			return -1, -1, err
 		}
 		defer f.Close()
-		if err := t.ExecuteTemplate(f, tname, &data); err != nil {
+		if err := t.ExecuteTemplate(f, "pgs", &data); err != nil {
 			return -1, -1, err
 		}
 	}
@@ -623,7 +659,7 @@ func (c *Config) copyDirs(sourceDir, destDir string) error {
 				return err
 			}
 		default:
-			if err := c.copy(sourcePath, destPath); err != nil {
+			if err := c.copyFile(sourcePath, destPath); err != nil {
 				return err
 			}
 		}
@@ -638,7 +674,7 @@ func exists(filePath string) bool {
 	return true
 }
 
-func (c *Config) copy(srcFile, dstFile string) error {
+func (c *Config) copyFile(srcFile, dstFile string) error {
 	out, err := os.Create(dstFile)
 	if err != nil {
 		return err
