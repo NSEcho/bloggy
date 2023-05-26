@@ -5,7 +5,10 @@
             <div class="col-md-10 col-lg-8 col-xl-7">
                 <h1 id="references">References</h1>
                 <ol>
-                    {{ range . }}<li><a href="{{.}}">{{.}}</a></li>
+                    {{ range $k, $v := . }}
+                    <li>
+                        <a href="{{$v}}">{{$k}}</a>
+                    </li>
                     {{end}}
                 </ol>
             </div>

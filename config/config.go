@@ -288,6 +288,17 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 
 	for _, post := range dt.Posts {
 		post.Author = dt.Author
+		if len(post.References) > 0 {
+			post.RealRefs = make(map[string]string, len(post.References))
+			for _, ref := range post.References {
+				splitted := strings.Split(ref, " => ")
+				if len(splitted) == 1 {
+					post.RealRefs[ref] = ref
+				} else {
+					post.RealRefs[splitted[0]] = splitted[1]
+				}
+			}
+		}
 		if err := c.postToHTML(&dt, &post, t); err != nil {
 			return -1, -1, err
 		}

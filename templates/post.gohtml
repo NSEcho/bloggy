@@ -54,7 +54,7 @@
                     </div>
                 </div>
             </div>
-            {{ template "refs" .Post.References }}
+            {{ template "refs" .Post.RealRefs }}
             {{ if .Data.DiffBlog }}
                 <script id="diffblog-plugin-script" async="false" src="https://diff.blog/static/js/diffblog_plugin_v1.js"></script>
                 <script>

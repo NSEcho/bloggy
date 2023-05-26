@@ -24,6 +24,7 @@ type Post struct {
 	Content   string
 	ContentMD template.HTML
 	Author    string
+	RealRefs  map[string]string
 }
 
 type PageMetadata struct {
