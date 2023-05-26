@@ -50,7 +50,7 @@ var postCmd = &cobra.Command{
 				"lldb",
 			},
 			References: []string{
-				"https://www.google.com",
+				"Google => https://www.google.com",
 				"https://www.facebook.com",
 			},
 			Draft: true,
