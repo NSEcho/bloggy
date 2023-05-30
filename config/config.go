@@ -124,20 +124,20 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 
 	dt.CurrentYear = time.Now().Format("2006")
 
-	posts, err := os.ReadDir("./posts")
+	posts, err := filepath.Glob("./posts/" + "*.md")
 	if err != nil {
 		return -1, -1, err
 	}
 
 	for _, file := range posts {
-		postPath := filepath.Join("./posts", file.Name())
-		post, err := postFromFile(postPath)
+		name := strings.Split(file, "/")[1]
+		post, err := postFromFile(file)
 		if err != nil {
 			return -1, -1, err
 		}
 		if post.Draft == true {
 			if genDrafts {
-				post.Name = getOutName(file.Name())
+				post.Name = getOutName(name)
 				dt.Posts = append(dt.Posts, *post)
 
 				for _, tag := range post.Tags {
@@ -148,7 +148,7 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 				}
 			}
 		} else {
-			post.Name = getOutName(file.Name())
+			post.Name = getOutName(name)
 			dt.Posts = append(dt.Posts, *post)
 
 			for _, tag := range post.Tags {
