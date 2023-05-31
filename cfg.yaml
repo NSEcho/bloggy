@@ -6,3 +6,5 @@ mail: someone@something.com
 author: Haxor
 about: About page section
 outdir: public
+cname: www.example.com
+posts_per_page: 5

@@ -63,8 +63,13 @@ first time will substitute the line with the contents of the file.
 After you have created everything or you just want to test it, run `bloggy gen` inside the directory 
 where you skeleton is stored and it will generate the webpage inside the `outdir` specified in the config file.
 
-# Embedding data
+# Embedding gists
 
 You can embed gist with `gist:/path/to/the/embed/script/code/from/the/gist.github.com`.
 
 Example: `gist:https://gist.github.com/lateralusd/12sdffsdfssd.js`.
+
+# CNAME
+
+If you are also deploying your github pages to some other domain, you can configure `cname` inside your `cfg.yaml` file 
+so that it creates `CNAME` file inside your generated directory.

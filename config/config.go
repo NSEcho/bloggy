@@ -38,6 +38,7 @@ type outcfg struct {
 	Author       string `yaml:"author"`
 	About        string `yaml:"about"`
 	Outdir       string `yaml:"outdir"`
+	CNAME        string `yaml:"cname"`
 	PostsPerPage int    `yaml:"posts_per_page"`
 }
 
@@ -52,6 +53,7 @@ type data struct {
 	About        string `yaml:"about"`
 	Outdir       string `yaml:"outdir"`
 	DiffBlog     string `yaml:"diffblog"`
+	CNAME        string `yaml:"cname"`
 	PostsPerPage int    `yaml:"posts_per_page"`
 	AboutMD      template.HTML
 	HasCustomCSS bool
@@ -92,6 +94,7 @@ func SaveConfig(filename string) error {
 		Author:       "Haxor",
 		About:        "About page section",
 		Outdir:       "public",
+		CNAME:        "www.example.com",
 		PostsPerPage: 5,
 	}
 	f, err := os.Create(filename)
@@ -329,6 +332,16 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 		if err := c.generateRSS(&dt); err != nil {
 			return -1, -1, err
 		}
+	}
+
+	if dt.CNAME != "" {
+		cnameFile, err := os.Create(filepath.Join(dt.Outdir, "CNAME"))
+		if err != nil {
+			return -1, -1, err
+		}
+		defer cnameFile.Close()
+
+		cnameFile.WriteString(dt.CNAME)
 	}
 
 	return len(dt.Posts), len(dt.Pages), nil
