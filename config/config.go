@@ -15,10 +15,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gomarkdown/markdown/parser"
 	"gopkg.in/yaml.v2"
 
 	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/parser"
 	"github.com/gorilla/feeds"
 	"github.com/nsecho/bloggy/models"
 )
@@ -40,6 +40,7 @@ type outcfg struct {
 	Outdir       string `yaml:"outdir"`
 	CNAME        string `yaml:"cname"`
 	PostsPerPage int    `yaml:"posts_per_page"`
+	WithRSS      bool   `yaml:"rss"`
 }
 
 type data struct {
@@ -55,6 +56,7 @@ type data struct {
 	DiffBlog     string `yaml:"diffblog"`
 	CNAME        string `yaml:"cname"`
 	PostsPerPage int    `yaml:"posts_per_page"`
+	WithRSS      bool   `yaml:"rss"`
 	AboutMD      template.HTML
 	HasCustomCSS bool
 	Posts        []models.Post
@@ -96,6 +98,7 @@ func SaveConfig(filename string) error {
 		Outdir:       "public",
 		CNAME:        "www.example.com",
 		PostsPerPage: 5,
+		WithRSS:      true,
 	}
 	f, err := os.Create(filename)
 	if err != nil {
@@ -132,7 +135,9 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 		return -1, -1, err
 	}
 
-	for _, file := range posts {
+	dt.Posts = make([]models.Post, len(posts))
+
+	for i, file := range posts {
 		name := strings.Split(file, "/")[1]
 		post, err := postFromFile(file)
 		if err != nil {
@@ -141,7 +146,8 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 		if post.Draft == true {
 			if genDrafts {
 				post.Name = getOutName(name)
-				dt.Posts = append(dt.Posts, *post)
+				dt.Posts[i] = *post
+				//dt.Posts = append(dt.Posts, *post)
 
 				for _, tag := range post.Tags {
 					dt.Tags[tag] = append(dt.Tags[tag], TagData{
@@ -152,7 +158,8 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 			}
 		} else {
 			post.Name = getOutName(name)
-			dt.Posts = append(dt.Posts, *post)
+			dt.Posts[i] = *post
+			//dt.Posts = append(dt.Posts, *post)
 
 			for _, tag := range post.Tags {
 				dt.Tags[tag] = append(dt.Tags[tag], TagData{
@@ -328,7 +335,7 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 		copyImages(&dt)
 	}
 
-	if dt.URL != "" {
+	if dt.URL != "" && dt.WithRSS {
 		if err := c.generateRSS(&dt); err != nil {
 			return -1, -1, err
 		}
@@ -435,8 +442,9 @@ func (c *Config) generateRSS(dt *data) error {
 		Author:      &feeds.Author{Name: dt.Author, Email: dt.Mail},
 		Created:     time.Now(),
 	}
+	feed.Items = make([]*feeds.Item, len(dt.Posts))
 
-	for _, post := range dt.Posts {
+	for i, post := range dt.Posts {
 		item := feeds.Item{
 			Title: post.Title,
 			Link: &feeds.Link{
@@ -446,7 +454,7 @@ func (c *Config) generateRSS(dt *data) error {
 			Author:      &feeds.Author{Name: dt.Author, Email: dt.Mail},
 			Created:     post.Date,
 		}
-		feed.Items = append(feed.Items, &item)
+		feed.Items[i] = &item
 	}
 
 	rss, err := feed.ToRss()

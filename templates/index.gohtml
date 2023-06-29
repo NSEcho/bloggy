@@ -50,6 +50,9 @@
                             Posted by
                             <a href="#!">{{$.Data.Author}}</a>
                             on {{printDate .Date}}
+                            {{ if .Draft }}
+                            <button type="button" class="btn btn-dark btn-sm">DRAFT</button>
+                            {{ end }}
                         </p>
                     </div>
                     <!-- Divider-->
