@@ -137,7 +137,7 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 
 	dt.Posts = make([]models.Post, len(posts))
 
-	for i, file := range posts {
+	for _, file := range posts {
 		name := strings.Split(file, "/")[1]
 		post, err := postFromFile(file)
 		if err != nil {
@@ -146,8 +146,7 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 		if post.Draft == true {
 			if genDrafts {
 				post.Name = getOutName(name)
-				dt.Posts[i] = *post
-				//dt.Posts = append(dt.Posts, *post)
+				dt.Posts = append(dt.Posts, *post)
 
 				for _, tag := range post.Tags {
 					dt.Tags[tag] = append(dt.Tags[tag], TagData{
@@ -158,8 +157,7 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 			}
 		} else {
 			post.Name = getOutName(name)
-			dt.Posts[i] = *post
-			//dt.Posts = append(dt.Posts, *post)
+			dt.Posts = append(dt.Posts, *post)
 
 			for _, tag := range post.Tags {
 				dt.Tags[tag] = append(dt.Tags[tag], TagData{
