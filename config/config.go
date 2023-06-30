@@ -135,8 +135,6 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 		return -1, -1, err
 	}
 
-	dt.Posts = make([]models.Post, len(posts))
-
 	for _, file := range posts {
 		name := strings.Split(file, "/")[1]
 		post, err := postFromFile(file)
@@ -440,7 +438,6 @@ func (c *Config) generateRSS(dt *data) error {
 		Author:      &feeds.Author{Name: dt.Author, Email: dt.Mail},
 		Created:     time.Now(),
 	}
-	feed.Items = make([]*feeds.Item, len(dt.Posts))
 
 	for i, post := range dt.Posts {
 		item := feeds.Item{
