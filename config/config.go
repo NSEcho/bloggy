@@ -3,9 +3,11 @@ package config
 import (
 	"bytes"
 	"embed"
+	"encoding/base64"
 	"fmt"
 	"html/template"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -305,6 +307,7 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 				}
 			}
 		}
+
 		if err := c.postToHTML(&dt, &post, t); err != nil {
 			return -1, -1, err
 		}
@@ -439,7 +442,7 @@ func (c *Config) generateRSS(dt *data) error {
 		Created:     time.Now(),
 	}
 
-	for i, post := range dt.Posts {
+	for _, post := range dt.Posts {
 		item := feeds.Item{
 			Title: post.Title,
 			Link: &feeds.Link{
@@ -449,7 +452,7 @@ func (c *Config) generateRSS(dt *data) error {
 			Author:      &feeds.Author{Name: dt.Author, Email: dt.Mail},
 			Created:     post.Date,
 		}
-		feed.Items[i] = &item
+		feed.Items = append(feed.Items, &item)
 	}
 
 	rss, err := feed.ToRss()
@@ -539,6 +542,43 @@ func (c *Config) tagToHTML(dt *data, name string, tags []TagData, t *template.Te
 	return t.ExecuteTemplate(f, "tagpage", d)
 }
 
+func parsePostImages(content string) (string, error) {
+	newContent := content
+	imageRe := regexp.MustCompile(`<img src="(.*?)"`)
+	matches := imageRe.FindAllStringSubmatch(content, -1)
+	if len(matches) == 0 {
+		return "", nil
+	}
+	for _, match := range matches {
+		imagePath := match[1]
+		stripped := strings.TrimLeft(imagePath, "../")
+		mime, rawBase, err := func(img string) (string, string, error) {
+			f, err := os.Open(img)
+			if err != nil {
+				return "", "", err
+			}
+			defer f.Close()
+
+			imageData, err := io.ReadAll(f)
+			if err != nil {
+				return "", "", err
+			}
+
+			encoded := base64.StdEncoding.EncodeToString(imageData)
+			mimeType := http.DetectContentType(imageData)
+
+			return mimeType, encoded, nil
+		}(stripped)
+		if err != nil {
+			return "", err
+		}
+		// 	replacedWithGists := gistRe.ReplaceAllString(string(md), `<script src="$1"></script>`)
+		newImageSrc := fmt.Sprintf("<img src=\"data:%s;base64,%s\"", mime, rawBase)
+		newContent = strings.Replace(newContent, match[0], newImageSrc, -1)
+	}
+	return newContent, nil
+}
+
 func postFromFile(filepath string) (*models.Post, error) {
 	f, err := os.OpenFile(filepath, os.O_RDWR, os.ModePerm)
 	if err != nil {
@@ -594,7 +634,11 @@ func postFromFile(filepath string) (*models.Post, error) {
 
 	md := markdown.ToHTML([]byte(content), parser, nil)
 	replacedWithGists := gistRe.ReplaceAllString(string(md), `<script src="$1"></script>`)
-	post.ContentMD = template.HTML(replacedWithGists)
+	newContent, err := parsePostImages(replacedWithGists)
+	if err != nil {
+		return nil, err
+	}
+	post.ContentMD = template.HTML(newContent)
 	post.PostMetadata = p
 	return &post, nil
 }
