@@ -111,6 +111,17 @@ func SaveConfig(filename string) error {
 	return yaml.NewEncoder(f).Encode(&cfg)
 }
 
+func writeBasicTemplate(buf *bytes.Buffer, out string) error {
+	f, err := os.Create(out)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = io.Copy(f, buf)
+	return err
+}
+
 func (c *Config) Generate(genDrafts bool) (int, int, error) {
 	// Read and parse config file
 	var dt data
@@ -246,6 +257,7 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 	copy(originalPosts, dt.Posts)
 
 	for k, v := range pagePosts {
+		buf := new(bytes.Buffer)
 		dt.Posts = make([]models.Post, len(v))
 		copy(dt.Posts, v)
 		tplData := struct {
@@ -259,32 +271,32 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 		}
 		if k == 1 {
 			for tpname, out := range basicTpls {
-				fpath := filepath.Join(c.outDir, out)
-				f, err := os.Create(fpath)
-				if err != nil {
-					return -1, -1, err
-				}
-				defer f.Close()
+				outPath := filepath.Join(c.outDir, out)
+
 				if tpname == "index" {
-					if err := t.ExecuteTemplate(f, tpname, tplData); err != nil {
+					if err := t.ExecuteTemplate(buf, tpname, tplData); err != nil {
 						return -1, -1, err
 					}
 				} else {
-					if err := t.ExecuteTemplate(f, tpname, &dt); err != nil {
+					if err := t.ExecuteTemplate(buf, tpname, &dt); err != nil {
 						return -1, -1, err
 					}
+				}
+
+				if err := writeBasicTemplate(buf, outPath); err != nil {
+					return -1, -1, err
 				}
 			}
 		} else {
 			dirName := filepath.Join(c.outDir, "pgs", strconv.Itoa(k))
 			os.MkdirAll(dirName, os.ModePerm)
-			fpath := filepath.Join(dirName, "index.html")
-			f, err := os.Create(fpath)
-			if err != nil {
+			outPath := filepath.Join(dirName, "index.html")
+
+			if err := t.ExecuteTemplate(buf, "pgs", &tplData); err != nil {
 				return -1, -1, err
 			}
-			defer f.Close()
-			if err := t.ExecuteTemplate(f, "pgs", &tplData); err != nil {
+
+			if err := writeBasicTemplate(buf, outPath); err != nil {
 				return -1, -1, err
 			}
 		}
