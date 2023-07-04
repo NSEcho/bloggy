@@ -559,7 +559,7 @@ func parsePostImages(content string) (string, error) {
 	imageRe := regexp.MustCompile(`<img src="(.*?)"`)
 	matches := imageRe.FindAllStringSubmatch(content, -1)
 	if len(matches) == 0 {
-		return "", nil
+		return newContent, nil
 	}
 	for _, match := range matches {
 		imagePath := match[1]
@@ -584,7 +584,6 @@ func parsePostImages(content string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		// 	replacedWithGists := gistRe.ReplaceAllString(string(md), `<script src="$1"></script>`)
 		newImageSrc := fmt.Sprintf("<img src=\"data:%s;base64,%s\"", mime, rawBase)
 		newContent = strings.Replace(newContent, match[0], newImageSrc, -1)
 	}
@@ -650,6 +649,7 @@ func postFromFile(filepath string) (*models.Post, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	post.ContentMD = template.HTML(newContent)
 	post.PostMetadata = p
 	return &post, nil
