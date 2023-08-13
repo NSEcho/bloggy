@@ -48,7 +48,7 @@ var touchCmd = &cobra.Command{
 		if _, err := f.Write(newContent); err != nil {
 			return err
 		}
-		
+
 		return nil
 	},
 }
