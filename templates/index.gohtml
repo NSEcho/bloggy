@@ -60,6 +60,7 @@
                     {{ end }}
                     <!--<div class="d-flex justify-content-end mb-4"><a class="btn btn-primary text-uppercase" href="#!">Older Posts →</a></div>!-->
                 </div>
+                {{ if (gt .TotalPages 1)}}
                 <div class="col-md-10 col-lg-8 col-xl-7">
                     <nav aria-label="Pages">
                         <ul class="pagination justify-content-center">
@@ -85,6 +86,7 @@
                         </ul>
                     </nav>
                 </div>
+                {{ end }}
             </div>
         </div>
         <!-- Footer-->
