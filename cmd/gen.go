@@ -8,8 +8,9 @@ import (
 )
 
 var genCmd = &cobra.Command{
-	Use:   "gen",
-	Short: "Generate site",
+	Use:     "gen",
+	Short:   "Generate site",
+	Aliases: []string{"g"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		filename, err := cmd.Flags().GetString("config")
 		if err != nil {

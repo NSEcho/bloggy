@@ -32,8 +32,9 @@ var output = `---
 `
 
 var postCmd = &cobra.Command{
-	Use:   "post",
-	Short: "Create new post",
+	Use:     "post",
+	Short:   "Create new post",
+	Aliases: []string{"p"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		joined := strings.Join(args, "_")
 		name := fmt.Sprintf("%s.md", joined)

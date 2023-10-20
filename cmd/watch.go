@@ -10,8 +10,9 @@ import (
 )
 
 var watchCmd = &cobra.Command{
-	Use:   "watch",
-	Short: "Watch for changes and generate on change",
+	Use:     "watch",
+	Short:   "Watch for changes and generate on change",
+	Aliases: []string{"w"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfgFilename, err := cmd.Flags().GetString("config")
 		if err != nil {

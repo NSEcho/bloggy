@@ -16,8 +16,9 @@ import (
 )
 
 var skeletonCmd = &cobra.Command{
-	Use:   "skeleton [outputDirectory]",
-	Short: "Create skeleton directory",
+	Use:     "skeleton [outputDirectory]",
+	Short:   "Create skeleton directory",
+	Aliases: []string{"s"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return errors.New("missing directory argument")

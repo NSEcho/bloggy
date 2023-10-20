@@ -13,8 +13,9 @@ import (
 )
 
 var touchCmd = &cobra.Command{
-	Use:   "touch post_file.md",
-	Short: "Update timestamp of the post",
+	Use:     "touch post_file.md",
+	Short:   "Update timestamp of the post",
+	Aliases: []string{"t"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			return errors.New("missing post file")

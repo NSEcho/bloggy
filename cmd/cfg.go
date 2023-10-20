@@ -8,8 +8,9 @@ import (
 )
 
 var cfgCmd = &cobra.Command{
-	Use:   "cfg",
-	Short: "Create sample config",
+	Use:     "cfg",
+	Short:   "Create sample config",
+	Aliases: []string{"c"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		filename, err := cmd.Flags().GetString("out")
 		if err != nil {

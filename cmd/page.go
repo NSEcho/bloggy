@@ -26,8 +26,9 @@ var wholeFile = `---
 `
 
 var pageCmd = &cobra.Command{
-	Use:   "page",
-	Short: "Create new page",
+	Use:     "page",
+	Short:   "Create new page",
+	Aliases: []string{"pa"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		joined := strings.Join(args, "_")
 		name := fmt.Sprintf("%s.md", joined)
