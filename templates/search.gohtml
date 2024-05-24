@@ -1,0 +1,111 @@
+{{ define "search" }}
+    <!DOCTYPE html>
+    <html lang="en">
+    {{ template "head" .Data }}
+    <body>
+    <script>
+        let posts = [
+            {{ range .AllPosts }}
+                {
+                    "title": {{.Title}},
+                    "description": {{.Description}},
+                    "content": {{ stripPostContent .ContentMD }},
+                    "name": {{ .Name }}
+                },
+            {{ end }}
+        ];
+        function clearInput() {
+           let elem = document.getElementById("search-input");
+           elem.value = "";
+        }
+        function search() {
+            let keyword = document.getElementById("search-input").value.toLowerCase().trim();
+            let results = document.getElementById("results");
+            let foundPosts = [];
+            for (i in posts) {
+                let title = posts[i].title.toLowerCase();
+                let desc = posts[i].description.toLowerCase();
+                let content = posts[i].content.toLowerCase();
+                if (title.includes(keyword) ||
+                desc.includes(keyword) ||
+                content.includes(keyword)) {
+                    foundPosts.push(posts[i]);
+                }
+            }
+            if (foundPosts.length > 0) {
+                let val = "<h3>Found " + foundPosts.length + " results for keyword \"" + document.getElementById("search-input").value + "\"</h3>";
+                val += "<ul>";
+                for (i in foundPosts) {
+                    val += "<li><a href=\"posts/" + foundPosts[i].name + "\"/>" + foundPosts[i].title + "</a></li>";
+                }
+                val += "</ul>";
+                results.innerHTML = val;
+            }
+        }
+    </script>
+    <!-- Navigation-->
+    <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+        <div class="container px-4 px-lg-5">
+            <a class="navbar-brand" href="#">Home</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                Menu
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                    {{ range .Data.Pages }}
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="pages/{{.Name}}">{{.Title}}</a></li>
+                    {{ end }}
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="tags.html">Tags</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Page Header-->
+    <header class="masthead" style="background-image: url('assets/img/about-bg.jpg')">
+        <div class="container position-relative px-4 px-lg-5">
+            <div class="row gx-4 gx-lg-5 justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    <div class="page-heading">
+                        <h1>Search in blog posts</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Main Content-->
+    <main class="mb-4">
+        <div class="container px-4 px-lg-5">
+            <div class="row gx-4 gx-lg-5 justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    <h2 id="posts-count"></h2>
+                    <script>
+                        let elem = document.getElementById("posts-count");
+                        elem.innerHTML = "Searching inside of " + posts.length.toString() + " posts";
+                    </script>
+                    <div class="input-group">
+                        <input class="form-control border-end-0 border rounded-pill" type="text" value="Enter keywords to search..." id="search-input" onfocus="clearInput();">
+                        <span class="input-group-append">
+                            <button class="btn btn-outline-secondary bg-white border-start-0 border rounded-pill ms-n3" type="button" onclick="search();">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <div id="results">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Footer-->
+    {{ template "links" .Data }}
+    <!-- Bootstrap core JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core theme JS-->
+    <script src="js/scripts.js"></script>
+    </body>
+    </html>
+{{ end }}

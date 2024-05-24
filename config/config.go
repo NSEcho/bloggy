@@ -29,6 +29,7 @@ var (
 	gistRe    = regexp.MustCompile(`<p>gist:<a\shref="(.*?)".*?</p>`)
 	headersRe = regexp.MustCompile(`##?\s(.*)`)
 	embedRe   = regexp.MustCompile(`embed:(.*):([^\s]+)`)
+	imageRe   = regexp.MustCompile(`<img src=.*?/>`)
 )
 
 type outcfg struct {
@@ -138,11 +139,13 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 
 	c.outDir = dt.Outdir
 
+	// convert about to html page
 	md := markdown.ToHTML([]byte(dt.About), nil, nil)
 	dt.AboutMD = template.HTML(string(md))
 
 	dt.CurrentYear = time.Now().Format("2006")
 
+	// parse all posts
 	posts, err := filepath.Glob("./posts/" + "*.md")
 	if err != nil {
 		return -1, -1, err
@@ -227,15 +230,20 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 		"dec": func(value int) int {
 			return value - 1
 		},
+		"stripPostContent": func(content template.HTML) string {
+			stripped := imageRe.ReplaceAllString(string(content), "")
+			return stripped
+		},
 	}).ParseFS(c.embedded, "templates/*")
 	if err != nil {
 		return -1, -1, err
 	}
 
 	basicTpls := map[string]string{
-		"index": "index.html",
-		"about": "about.html",
-		"tags":  "tags.html",
+		"index":  "index.html",
+		"about":  "about.html",
+		"tags":   "tags.html",
+		"search": "search.html",
 	}
 
 	perPage := 5
@@ -260,24 +268,31 @@ func (c *Config) Generate(genDrafts bool) (int, int, error) {
 		buf := new(bytes.Buffer)
 		dt.Posts = make([]models.Post, len(v))
 		copy(dt.Posts, v)
+
 		tplData := struct {
 			Data        data
 			CurrentPage int
 			TotalPages  int
+			AllPosts    []models.Post
 		}{
 			Data:        dt,
 			CurrentPage: k,
 			TotalPages:  len(pagePosts),
+			AllPosts:    originalPosts,
 		}
 		if k == 1 {
 			for tpname, out := range basicTpls {
 				outPath := filepath.Join(c.outDir, out)
-
-				if tpname == "index" {
+				switch tpname {
+				case "index":
 					if err := t.ExecuteTemplate(buf, tpname, tplData); err != nil {
 						return -1, -1, err
 					}
-				} else {
+				case "search":
+					if err := t.ExecuteTemplate(buf, tpname, tplData); err != nil {
+						return -1, -1, err
+					}
+				default:
 					if err := t.ExecuteTemplate(buf, tpname, &dt); err != nil {
 						return -1, -1, err
 					}
